@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat - Mental Wellness Mirror</title>
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Styles - CORRECTED PATHS -->
+  <link rel="stylesheet" href="../css/shared.css">
+  <link rel="stylesheet" href="../css/chat.css">
+</head>
+<body>
+  
+  <div class="chat-layout">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      
+      <div class="sidebar-header">
+        <!-- CORRECTED PATH -->
+        <a href="../index.html" class="sidebar-brand">
+          <i class="fas fa-brain"></i>
+          <span>Wellness Mirror</span>
+        </a>
+        <button class="sidebar-toggle" id="sidebarClose" aria-label="Close sidebar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <button class="new-chat-btn">
+        <i class="fas fa-plus"></i>
+        <span>New Chat</span>
+      </button>
+      
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Main</div>
+          <a href="chat.html" class="nav-item active">
+            <i class="fas fa-comments"></i>
+            <span>Chat</span>
+          </a>
+          <a href="#" class="nav-item">
+            <i class="fas fa-chart-line"></i>
+            <span>Dashboard</span>
+          </a>
+          <a href="#" class="nav-item">
+            <i class="fas fa-history"></i>
+            <span>History</span>
+          </a>
+        </div>
+        
+        <div class="nav-section">
+          <div class="nav-section-title">Recent Chats</div>
+          <a href="#" class="nav-item">
+            <i class="far fa-comment"></i>
+            <span>Feeling Overwhelmed</span>
+          </a>
+          <a href="#" class="nav-item">
+            <i class="far fa-comment"></i>
+            <span>A Good Day Reflection</span>
+          </a>
+        </div>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <a href="profile.html" class="user-profile">
+          <div class="user-avatar">DH</div>
+          <div class="user-info">
+            <div class="user-name">Dhara</div>
+            <div class="user-status">My Profile</div>
+          </div>
+          <i class="fas fa-chevron-right"></i>
+        </a>
+      </div>
+      
+    </aside>
+    
+    <!-- Main Chat Area -->
+    <main class="chat-main">
+      
+      <header class="chat-header">
+        <div class="chat-header-left">
+          <button class="mobile-menu-btn" id="sidebarOpen" aria-label="Open sidebar">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h2 class="chat-title">New Chat</h2>
+        </div>
+        <div class="chat-actions">
+          <button class="action-btn">
+            <i class="fas fa-share-alt"></i> Share
+          </button>
+          <button class="action-btn">
+            <i class="fas fa-trash"></i> Delete
+          </button>
+        </div>
+      </header>
+      
+      <div class="chat-body" id="chatBody">
+        
+        <!-- Empty State (initially visible) -->
+        <div class="chat-empty" id="chatEmptyState">
+          <div class="chat-empty-icon">
+            <i class="fas fa-brain"></i>
+          </div>
+          <h3>How are you feeling today?</h3>
+          <p>Start a conversation to get insights into your emotional wellness.</p>
+          
+          <div class="suggestion-cards">
+            <div class="suggestion-card" data-prompt="I'm feeling stressed about work deadlines.">
+              <h4>Feeling Stressed?</h4>
+              <p>Talk about what's overwhelming you at work.</p>
+            </div>
+            
+            <div class="suggestion-card" data-prompt="Today was a really good day because...">
+              <h4>Had a Good Day?</h4>
+              <p>Reflect on what made your day positive.</p>
+            </div>
+            
+            <div class="suggestion-card" data-prompt="I'm worried about a difficult conversation I need to have.">
+              <h4>Feeling Anxious?</h4>
+              <p>Explore your worries about an upcoming talk.</p>
+            </div>
+            
+            <div class="suggestion-card" data-prompt="I'm grateful for my friends and family.">
+              <h4>Practice Gratitude</h4>
+              <p>Share what you're thankful for today.</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Chat Messages will be dynamically added here -->
+        
+      </div>
+      
+      <div class="chat-input-area">
+        <div class="chat-input-wrapper">
+          <div class="chat-input-container">
+            <textarea id="chatInput" placeholder="Type your message here..." rows="1"></textarea>
+          </div>
+          <div class="chat-input-actions">
+            <div class="input-tools">
+              <button class="tool-btn" title="Attach File">
+                <i class="fas fa-paperclip"></i>
+              </button>
+              <button class="tool-btn" title="Use Microphone">
+                <i class="fas fa-microphone"></i>
+              </button>
+            </div>
+            <button class="send-btn" id="sendBtn" title="Send Message">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+          <div class="char-counter">0 / 5000</div>
+        </div>
+      </div>
+      
+    </main>
+    
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+  </div>
+
+  <!-- Scripts - CORRECTED PATH -->
+  <script src="../js/chat.js"></script>
+</body>
+</html>

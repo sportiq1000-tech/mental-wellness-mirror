@@ -149,7 +149,7 @@ class MentalWellnessApp {
                     'ai',
                     response.data.sentiment,
                     response.data.timestamp,
-                    response.data.source  // ✅ NEW: Pass source
+                    response.data.source
                 );
                 
                 // Update stats
@@ -184,62 +184,92 @@ class MentalWellnessApp {
         }
     }
     
-   addMessageToChat(text, type, sentiment = null, timestamp = null, source = null) {
-    const chatMessages = document.getElementById('chatMessages');
-    if (!chatMessages) return;
-    
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${type}-message`;
-    
-    const avatarIcon = type === 'user' ? 'fa-user' : 'fa-robot';
-    
-    // ✅ NEW: Add source indicator for AI messages
-    let sourceIndicator = '';
-    if (type === 'ai' && source) {
-        if (source === 'groq') {
-            sourceIndicator = '<span class="ai-source groq-source" title="Powered by Groq AI"><i class="fas fa-bolt"></i> AI</span>';
-        } else if (source === 'fallback') {
-            sourceIndicator = '<span class="ai-source fallback-source" title="Fallback response (AI unavailable)"><i class="fas fa-exclamation-triangle"></i> Offline</span>';
+    addMessageToChat(text, type, sentiment = null, timestamp = null, source = null) {
+        const chatMessages = document.getElementById('chatMessages');
+        if (!chatMessages) return;
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}-message`;
+        
+        const avatarIcon = type === 'user' ? 'fa-user' : 'fa-robot';
+        
+        // Add source indicator for AI messages
+        let sourceIndicator = '';
+        if (type === 'ai' && source) {
+            if (source === 'groq') {
+                sourceIndicator = '<span class="ai-source groq-source" title="Powered by Groq AI"><i class="fas fa-bolt"></i> AI</span>';
+            } else if (source === 'fallback') {
+                sourceIndicator = '<span class="ai-source fallback-source" title="Fallback response (AI unavailable)"><i class="fas fa-exclamation-triangle"></i> Offline</span>';
+            }
         }
-    }
-    
-    let metaHTML = '';
-    if (sentiment) {
-        metaHTML = `
-            <div class="message-meta">
-                ${sourceIndicator}
-                <span class="sentiment-badge ${sentiment.label.toLowerCase()}">
-                    ${sentiment.emoji} ${sentiment.label}
-                </span>
-                <span class="message-time">${formatTimestamp(timestamp || new Date())}</span>
+        
+        // ✅ NEW: Add voice button for AI messages
+        let voiceButton = '';
+        if (type === 'ai') {
+            voiceButton = `
+                <button class="voice-btn" data-text="${text.replace(/"/g, '&quot;')}" title="Play audio">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+            `;
+        }
+        
+        let metaHTML = '';
+        if (sentiment) {
+            metaHTML = `
+                <div class="message-meta">
+                    ${sourceIndicator}
+                    <span class="sentiment-badge ${sentiment.label.toLowerCase()}">
+                        ${sentiment.emoji} ${sentiment.label}
+                    </span>
+                    <span class="message-time">${formatTimestamp(timestamp || new Date())}</span>
+                    ${voiceButton}
+                </div>
+            `;
+        } else if (type === 'ai') {
+            // AI message without sentiment (welcome message)
+            metaHTML = `
+                <div class="message-meta">
+                    ${voiceButton}
+                </div>
+            `;
+        }
+        
+        messageDiv.innerHTML = `
+            <div class="message-avatar">
+                <i class="fas ${avatarIcon}"></i>
+            </div>
+            <div class="message-content">
+                <p>${sanitizeHTML(text)}</p>
+                ${metaHTML}
             </div>
         `;
+        
+        chatMessages.appendChild(messageDiv);
+        
+        // ✅ NEW: Add event listener for voice button
+        if (type === 'ai') {
+            const voiceBtn = messageDiv.querySelector('.voice-btn');
+            if (voiceBtn) {
+                voiceBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const textToSpeak = voiceBtn.dataset.text;
+                    await this.playVoice(textToSpeak, voiceBtn);
+                });
+            }
+        }
+        
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Store in memory
+        this.chatMessages.push({
+            text,
+            type,
+            sentiment,
+            timestamp: timestamp || new Date().toISOString(),
+            source
+        });
     }
-    
-    messageDiv.innerHTML = `
-        <div class="message-avatar">
-            <i class="fas ${avatarIcon}"></i>
-        </div>
-        <div class="message-content">
-            <p>${sanitizeHTML(text)}</p>
-            ${metaHTML}
-        </div>
-    `;
-    
-    chatMessages.appendChild(messageDiv);
-    
-    // Scroll to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    
-    // Store in memory
-    this.chatMessages.push({
-        text,
-        type,
-        sentiment,
-        timestamp: timestamp || new Date().toISOString(),
-        source
-    });
-}
     
     updateQuickStats(stats) {
         if (!stats) return;
@@ -263,6 +293,93 @@ class MentalWellnessApp {
                 }, 150);
             }
         });
+    }
+    
+    // ✅ NEW: Voice playback function with pause/resume
+    async playVoice(text, buttonElement) {
+        try {
+            // Check if audio is already playing for this button
+            if (buttonElement.audioInstance) {
+                // Audio exists - toggle pause/resume
+                const audio = buttonElement.audioInstance;
+                
+                if (audio.paused) {
+                    // Resume playback
+                    await audio.play();
+                    buttonElement.innerHTML = '<i class="fas fa-pause"></i>';
+                } else {
+                    // Pause playback
+                    audio.pause();
+                    buttonElement.innerHTML = '<i class="fas fa-play"></i>';
+                }
+                return;
+            }
+            
+            // No audio instance - create new one
+            const originalHTML = buttonElement.innerHTML;
+            buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            buttonElement.disabled = true;
+            
+            // Get selected voice preferences
+            const voiceGender = localStorage.getItem('voiceGender') || 'female';
+            const voiceSpeed = localStorage.getItem('voiceSpeed') || 'normal';
+            
+            // Call voice API with gender and speed preference
+            const response = await fetch('/api/voice', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    text: text,
+                    language: 'en',
+                    slow: voiceSpeed === 'slow',
+                    gender: voiceGender
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success && data.data.audioUrl) {
+                // Create audio instance
+                const audio = new Audio(data.data.audioUrl);
+                
+                // Store audio instance on button for pause/resume
+                buttonElement.audioInstance = audio;
+                
+                // Update button when audio ends
+                audio.onended = () => {
+                    buttonElement.innerHTML = originalHTML;
+                    buttonElement.disabled = false;
+                    buttonElement.audioInstance = null;
+                };
+                
+                // Handle audio errors
+                audio.onerror = () => {
+                    showToast('Failed to play audio', 'error');
+                    buttonElement.innerHTML = originalHTML;
+                    buttonElement.disabled = false;
+                    buttonElement.audioInstance = null;
+                };
+                
+                // Start playback
+                await audio.play();
+                
+                // Enable button and change to pause icon
+                buttonElement.disabled = false;
+                buttonElement.innerHTML = '<i class="fas fa-pause"></i>';
+                
+            } else {
+                throw new Error('Failed to generate audio');
+            }
+            
+        } catch (error) {
+            console.error('Voice playback error:', error);
+            showToast('Voice output unavailable', 'error');
+            buttonElement.innerHTML = '<i class="fas fa-volume-up"></i>';
+            buttonElement.disabled = false;
+            buttonElement.audioInstance = null;
+        }
     }
     
     async loadInitialData() {
@@ -347,11 +464,123 @@ class MentalWellnessApp {
     }
 }
 
+// ============================================
+// ✅ NEW: VOICE SETTINGS MANAGER
+// ============================================
+class VoiceSettingsManager {
+    constructor() {
+        this.settingsToggle = document.getElementById('voiceSettingsToggle');
+        this.settingsDropdown = document.getElementById('voiceSettingsDropdown');
+        this.genderSelect = document.getElementById('voiceGenderSelect');
+        this.speedSelect = document.getElementById('voiceSpeedSelect');
+        this.testVoiceBtn = document.getElementById('testVoiceBtn');
+        
+        this.init();
+    }
+    
+    init() {
+        // Load saved preferences
+        const savedGender = localStorage.getItem('voiceGender') || 'female';
+        const savedSpeed = localStorage.getItem('voiceSpeed') || 'normal';
+        
+        if (this.genderSelect) this.genderSelect.value = savedGender;
+        if (this.speedSelect) this.speedSelect.value = savedSpeed;
+        
+        // Setup event listeners
+        this.setupEventListeners();
+    }
+    
+    setupEventListeners() {
+        // Toggle dropdown
+        if (this.settingsToggle) {
+            this.settingsToggle.addEventListener('click', () => {
+                const isVisible = this.settingsDropdown.style.display === 'block';
+                this.settingsDropdown.style.display = isVisible ? 'none' : 'block';
+            });
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!this.settingsToggle?.contains(e.target) && 
+                !this.settingsDropdown?.contains(e.target)) {
+                this.settingsDropdown.style.display = 'none';
+            }
+        });
+        
+        // Save gender preference
+        if (this.genderSelect) {
+            this.genderSelect.addEventListener('change', (e) => {
+                localStorage.setItem('voiceGender', e.target.value);
+                showToast(`Voice changed to ${e.target.value}`, 'success');
+            });
+        }
+        
+        // Save speed preference
+        if (this.speedSelect) {
+            this.speedSelect.addEventListener('change', (e) => {
+                localStorage.setItem('voiceSpeed', e.target.value);
+                showToast(`Speed changed to ${e.target.value}`, 'success');
+            });
+        }
+        
+        // Test voice button
+        if (this.testVoiceBtn) {
+            this.testVoiceBtn.addEventListener('click', async () => {
+                await this.testVoice();
+            });
+        }
+    }
+    
+    async testVoice() {
+        const testText = "Hello! This is a test of the selected voice settings.";
+        const gender = this.genderSelect?.value || 'female';
+        const speed = this.speedSelect?.value || 'normal';
+        
+        try {
+            this.testVoiceBtn.disabled = true;
+            this.testVoiceBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+            
+            const response = await fetch('/api/voice', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    text: testText,
+                    language: 'en',
+                    slow: speed === 'slow',
+                    gender: gender
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success && data.data.audioUrl) {
+                const audio = new Audio(data.data.audioUrl);
+                audio.play();
+                
+                audio.onended = () => {
+                    this.testVoiceBtn.disabled = false;
+                    this.testVoiceBtn.innerHTML = '<i class="fas fa-play"></i> Test Voice';
+                };
+            }
+            
+        } catch (error) {
+            console.error('Test voice error:', error);
+            showToast('Failed to test voice', 'error');
+            this.testVoiceBtn.disabled = false;
+            this.testVoiceBtn.innerHTML = '<i class="fas fa-play"></i> Test Voice';
+        }
+    }
+}
+
 // Initialize app when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         window.app = new MentalWellnessApp();
+        window.voiceSettings = new VoiceSettingsManager();
     });
 } else {
     window.app = new MentalWellnessApp();
+    window.voiceSettings = new VoiceSettingsManager();
 }

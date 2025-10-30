@@ -10,7 +10,7 @@ const path = require('path');
  */
 async function handleVoiceGeneration(req, res) {
     try {
-        const { text, language = 'en', slow = false } = req.body;
+        const { text, language = 'en', slow = false, gender = 'female' } = req.body;
         
         // Validation
         if (!text || typeof text !== 'string') {
@@ -35,8 +35,11 @@ async function handleVoiceGeneration(req, res) {
             });
         }
         
-        // Generate voice
-        const audioFilename = await generateVoice(text, language, slow);
+        // Validate gender parameter
+        const validGender = ['male', 'female'].includes(gender) ? gender : 'female';
+        
+        // Generate voice with gender preference
+        const audioFilename = await generateVoice(text, language, slow, validGender);
         
         if (!audioFilename) {
             throw new Error('Failed to generate audio file');
@@ -50,7 +53,8 @@ async function handleVoiceGeneration(req, res) {
             data: {
                 audioUrl,
                 duration: Math.ceil(text.length / 15), // Approximate seconds
-                expiresIn: 600 // 10 minutes
+                expiresIn: 600, // 10 minutes
+                gender: validGender  // ✅ NEW: Return which voice was used
             }
         });
         

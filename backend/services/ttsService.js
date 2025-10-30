@@ -15,18 +15,30 @@ if (!fs.existsSync(AUDIO_DIR)) {
     fs.mkdirSync(AUDIO_DIR, { recursive: true });
 }
 
+
 /**
  * Generate audio file from text using gTTS
  */
-async function generateVoice(text, language = 'en', slow = false) {
+async function generateVoice(text, language = 'en', slow = false, gender = 'female') {
     return new Promise((resolve, reject) => {
         const timestamp = Date.now();
         const randomId = Math.random().toString(36).substring(7);
         const filename = `tts_${timestamp}_${randomId}.mp3`;
         const outputPath = path.join(AUDIO_DIR, filename);
         
-        // Spawn Python process
-        const pythonArgs = [TTS_SCRIPT, text, outputPath, language, slow ? 'true' : 'false'];
+        // Validate gender parameter
+        const validGender = ['male', 'female'].includes(gender) ? gender : 'female';
+        
+        // Spawn Python process with gender parameter
+        const pythonArgs = [
+            TTS_SCRIPT, 
+            text, 
+            outputPath, 
+            language, 
+            slow ? 'true' : 'false',
+            validGender  // ✅ NEW: Pass gender to Python
+        ];
+        
         const pythonProcess = spawn(PYTHON_PATH, pythonArgs);
         
         let outputData = '';
