@@ -348,3 +348,101 @@
         <section class="tab-panel" data-panel="notifications">
           <h2 class="section-title">Notification Preferences</h2>
           
+          <div class="card">
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3 class="preference-title">📧 Email Notifications</h3>
+                <p class="preference-description">Receive updates via email</p>
+              </div>
+              <div class="preference-controls">
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Weekly wellness summary</span>
+                </label>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Mood pattern insights</span>
+                </label>
+                <label class="toggle-switch">
+                  <input type="checkbox">
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">New feature announcements</span>
+                </label>
+                <label class="toggle-switch">
+                  <input type="checkbox">
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Marketing emails</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="preference-divider"></div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3 class="preference-title">🔔 Push Notifications</h3>
+                <p class="preference-description">Get notified on your device</p>
+              </div>
+              <div class="preference-controls">
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Daily check-in reminders</span>
+                </label>
+                <label class="toggle-switch">
+                  <input type="checkbox">
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Streak milestones</span>
+                </label>
+                <label class="toggle-switch">
+                  <input type="checkbox">
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Wellness tips</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="preference-divider"></div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3 class="preference-title">⏰ Reminder Schedule</h3>
+                <p class="preference-description">When should we remind you to check in?</p>
+              </div>
+              <div class="preference-controls" style="gap: 1rem;">
+                <div class="form-group" style="margin: 0;">
+                  <label class="form-label">Reminder Time</label>
+                  <input type="time" class="form-input" value="20:00" style="max-width: 150px;">
+                </div>
+                <div class="form-group" style="margin: 0;">
+                  <label class="form-label">Frequency</label>
+                  <select class="form-input" style="max-width: 150px;">
+                    <option value="daily">Daily</option>
+                    <option value="weekdays">Weekdays only</option>
+                    <option value="weekends">Weekends only</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ============================================ -->
+  <!-- JAVASCRIPT (ADD THESE BEFORE </body>) -->
+  <!-- ============================================ -->
+  
+  <!-- Auth & API Scripts (Load first) -->
+  <script src="/js/auth-manager.js"></script>
+  <script src="/js/api-client.js"></script>
+  
+  <!-- Page-specific script -->
+  <script src="/js/profile.js"></script>
+</body>
+</html>

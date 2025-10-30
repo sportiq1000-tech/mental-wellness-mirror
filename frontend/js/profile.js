@@ -1,95 +1,212 @@
 /**
  * Profile Page Logic
- * Mental Wellness Mirror
+ * UPDATED: Real user data with authentication
  */
 
 // ============================================
-// SIDEBAR TOGGLE
+// AUTHENTICATION CHECK (ADD AT TOP)
 // ============================================
-
-const toggleSidebarBtn = document.getElementById('toggleSidebar');
-const sidebar = document.getElementById('sidebar');
-
-if (toggleSidebarBtn) {
-  toggleSidebarBtn.addEventListener('click', () => {
-    sidebar.classList.toggle('open');
-  });
-
-  document.addEventListener('click', (e) => {
-    if (window.innerWidth <= 768) {
-      if (!sidebar.contains(e.target) && !toggleSidebarBtn.contains(e.target)) {
-        sidebar.classList.remove('open');
-      }
-    }
-  });
+if (!window.authManager || !window.authManager.requireAuth()) {
+  throw new Error('Authentication required');
 }
 
-// ============================================
-// TAB SWITCHING
-// ============================================
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('✅ Profile page loaded');
+  
+  // ============================================
+  // SIDEBAR TOGGLE
+  // ============================================
+  const toggleSidebarBtn = document.getElementById('toggleSidebar');
+  const sidebar = document.getElementById('sidebar');
 
-const tabBtns = document.querySelectorAll('.tab-btn');
-const tabPanels = document.querySelectorAll('.tab-panel');
+  if (toggleSidebarBtn) {
+    toggleSidebarBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
 
-tabBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const tabName = btn.dataset.tab;
+    document.addEventListener('click', (e) => {
+      if (window.innerWidth <= 768) {
+        if (!sidebar.contains(e.target) && !toggleSidebarBtn.contains(e.target)) {
+          sidebar.classList.remove('open');
+        }
+      }
+    });
+  }
+
+  // ============================================
+  // LOAD USER PROFILE
+  // ============================================
+  
+  try {
+    const profileResponse = await window.api.getProfile();
+    const profile = profileResponse.data.user;
     
-    // Remove active class from all tabs and panels
-    tabBtns.forEach(b => b.classList.remove('active'));
-    tabPanels.forEach(p => p.classList.remove('active'));
+    // Update profile display
+    document.getElementById('firstName').value = profile.fullName?.split(' ')[0] || '';
+    document.getElementById('lastName').value = profile.fullName?.split(' ').slice(1).join(' ') || '';
+    document.getElementById('email').value = profile.email || '';
+    document.querySelector('.profile-name').textContent = profile.fullName || 'User';
+    document.querySelector('.profile-email').textContent = profile.email || '';
     
-    // Add active class to clicked tab and corresponding panel
-    btn.classList.add('active');
-    document.querySelector(`[data-panel="${tabName}"]`).classList.add('active');
+    // Update sidebar
+    const userName = document.querySelector('.user-name');
+    const userEmail = document.querySelector('.user-email');
+    if (userName) userName.textContent = profile.fullName || profile.username || 'User';
+    if (userEmail) userEmail.textContent = profile.email;
+    
+    console.log('✅ Profile loaded:', profile.email);
+    
+  } catch (error) {
+    console.error('Error loading profile:', error);
+    showNotification('Failed to load profile', 'error');
+  }
+
+  // ============================================
+  // TAB SWITCHING
+  // ============================================
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabPanels = document.querySelectorAll('.tab-panel');
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabName = btn.dataset.tab;
+      
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabPanels.forEach(p => p.classList.remove('active'));
+      
+      btn.classList.add('active');
+      document.querySelector(`[data-panel="${tabName}"]`).classList.add('active');
+    });
   });
+
+  // ============================================
+  // ACCOUNT FORM SUBMISSION
+  // ============================================
+  const accountForm = document.getElementById('accountForm');
+
+  if (accountForm) {
+    accountForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      
+      try {
+        const updates = {
+          fullName: `${firstName} ${lastName}`.trim(),
+          email: email
+        };
+        
+        const response = await window.api.updateProfile(updates);
+        
+        if (response.success) {
+          // Update local user data
+          const user = window.authManager.getCurrentUser();
+          user.fullName = updates.fullName;
+          user.email = updates.email;
+          window.authManager.user = user;
+          window.authManager.saveToStorage();
+          
+          showNotification('Profile updated successfully!', 'success');
+        }
+        
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        showNotification(error.message || 'Failed to update profile', 'error');
+      }
+    });
+  }
+
+  // ============================================
+  // PASSWORD FORM SUBMISSION
+  // ============================================
+  const passwordForm = document.getElementById('passwordForm');
+  const newPasswordInput = document.getElementById('newPassword');
+  const passwordStrengthBar = document.querySelector('.strength-bar');
+
+  // Password strength checker
+  if (newPasswordInput && passwordStrengthBar) {
+    newPasswordInput.addEventListener('input', (e) => {
+      const password = e.target.value;
+      const strength = calculatePasswordStrength(password);
+      
+      passwordStrengthBar.style.width = `${strength.percentage}%`;
+      passwordStrengthBar.dataset.strength = strength.level;
+    });
+  }
+
+  if (passwordForm) {
+    passwordForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const currentPassword = document.getElementById('currentPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      
+      // Validation
+      if (newPassword !== confirmPassword) {
+        showNotification('Passwords do not match!', 'error');
+        return;
+      }
+      
+      if (newPassword.length < 8) {
+        showNotification('Password must be at least 8 characters!', 'error');
+        return;
+      }
+      
+      try {
+        await window.api.changePassword(currentPassword, newPassword);
+        
+        showNotification('Password updated successfully!', 'success');
+        passwordForm.reset();
+        if (passwordStrengthBar) passwordStrengthBar.style.width = '0%';
+        
+      } catch (error) {
+        console.error('Error changing password:', error);
+        showNotification(error.message || 'Failed to update password', 'error');
+      }
+    });
+  }
+
+  // ============================================
+  // THEME CHANGE
+  // ============================================
+  const themeSelect = document.getElementById('themeSelect');
+
+  if (themeSelect) {
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    themeSelect.value = savedTheme;
+    
+    themeSelect.addEventListener('change', (e) => {
+      const theme = e.target.value;
+      localStorage.setItem('theme', theme);
+      showNotification(`Theme changed to ${theme}`, 'success');
+      
+      // Apply theme (if you have dark mode CSS)
+      if (theme === 'dark') {
+        document.body.classList.add('dark-theme');
+      } else {
+        document.body.classList.remove('dark-theme');
+      }
+    });
+  }
+
+  // ============================================
+  // LOAD SESSIONS
+  // ============================================
+  try {
+    const sessionsResponse = await window.api.getSessions();
+    displaySessions(sessionsResponse.data.sessions);
+  } catch (error) {
+    console.error('Error loading sessions:', error);
+  }
 });
 
 // ============================================
-// ACCOUNT FORM SUBMISSION
+// UTILITY FUNCTIONS
 // ============================================
-
-const accountForm = document.getElementById('accountForm');
-
-if (accountForm) {
-  accountForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const formData = {
-      firstName: document.getElementById('firstName').value,
-      lastName: document.getElementById('lastName').value,
-      email: document.getElementById('email').value,
-      phone: document.getElementById('phone').value,
-      timezone: document.getElementById('timezone').value
-    };
-    
-    console.log('Updating account:', formData);
-    
-    // Mock API call
-    await mockAPICall('/api/user/update', formData);
-    
-    showNotification('Account updated successfully!', 'success');
-  });
-}
-
-// ============================================
-// PASSWORD FORM SUBMISSION
-// ============================================
-
-const passwordForm = document.getElementById('passwordForm');
-const newPasswordInput = document.getElementById('newPassword');
-const passwordStrengthBar = document.querySelector('.strength-bar');
-
-// Password strength checker
-if (newPasswordInput) {
-  newPasswordInput.addEventListener('input', (e) => {
-    const password = e.target.value;
-    const strength = calculatePasswordStrength(password);
-    
-    passwordStrengthBar.style.width = `${strength.percentage}%`;
-    passwordStrengthBar.dataset.strength = strength.level;
-  });
-}
 
 function calculatePasswordStrength(password) {
   let score = 0;
@@ -107,71 +224,11 @@ function calculatePasswordStrength(password) {
   return { percentage: Math.min(score, 100), level };
 }
 
-if (passwordForm) {
-  passwordForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const currentPassword = document.getElementById('currentPassword').value;
-    const newPassword = document.getElementById('newPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    
-    // Validation
-    if (newPassword !== confirmPassword) {
-      showNotification('Passwords do not match!', 'error');
-      return;
-    }
-    
-    if (newPassword.length < 8) {
-      showNotification('Password must be at least 8 characters!', 'error');
-      return;
-    }
-    
-    console.log('Updating password...');
-    
-    // Mock API call
-    await mockAPICall('/api/user/change-password', {
-      currentPassword,
-      newPassword
-    });
-    
-    showNotification('Password updated successfully!', 'success');
-    passwordForm.reset();
-    passwordStrengthBar.style.width = '0%';
-  });
-}
-
-// ============================================
-// THEME CHANGE
-// ============================================
-
-const themeSelect = document.getElementById('themeSelect');
-
-if (themeSelect) {
-  themeSelect.addEventListener('change', (e) => {
-    const theme = e.target.value;
-    console.log('Changing theme to:', theme);
-    
-    // In production, this would apply the actual theme
-    localStorage.setItem('theme', theme);
-    showNotification(`Theme changed to ${theme}`, 'success');
-  });
-  
-  // Load saved theme
-  const savedTheme = localStorage.getItem('theme') || 'light';
-  themeSelect.value = savedTheme;
-}
-
-// ============================================
-// UTILITY FUNCTIONS
-// ============================================
-
 function showNotification(message, type = 'success') {
-  // Create notification element
   const notification = document.createElement('div');
   notification.className = `notification notification-${type}`;
   notification.textContent = message;
   
-  // Add styles
   Object.assign(notification.style, {
     position: 'fixed',
     top: '2rem',
@@ -187,40 +244,45 @@ function showNotification(message, type = 'success') {
   
   document.body.appendChild(notification);
   
-  // Remove after 3 seconds
   setTimeout(() => {
     notification.style.animation = 'slideOut 0.3s ease';
     setTimeout(() => notification.remove(), 300);
   }, 3000);
 }
 
-async function mockAPICall(endpoint, data) {
-  // Simulate API delay
-  return new Promise(resolve => {
-    setTimeout(() => {
-      console.log(`API Call to ${endpoint}:`, data);
-      resolve({ success: true });
-    }, 500);
-  });
+function displaySessions(sessions) {
+  // TODO: Display active sessions in the UI
+  console.log('Active sessions:', sessions);
 }
 
 function confirmDeleteAccount() {
   const confirmed = confirm(
     '⚠️ WARNING: This will permanently delete your account and all data.\n\n' +
     'This action cannot be undone.\n\n' +
-    'Type "DELETE" to confirm.'
+    'Are you sure?'
   );
   
   if (confirmed) {
-    const verification = prompt('Type DELETE to confirm:');
-    if (verification === 'DELETE') {
-      console.log('Deleting account...');
-      showNotification('Account deletion initiated. You will receive a confirmation email.', 'error');
-      
-      // In production:
-      // await fetch('/api/user/delete', { method: 'DELETE' });
-      // Redirect to goodbye page
+    const password = prompt('Enter your password to confirm deletion:');
+    if (password) {
+      deleteAccount(password);
     }
+  }
+}
+
+async function deleteAccount(password) {
+  try {
+    await window.api.deleteAccount(password);
+    showNotification('Account deleted successfully. Redirecting...', 'success');
+    
+    setTimeout(() => {
+      window.authManager.clearAuth();
+      window.location.href = '/';
+    }, 2000);
+    
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    showNotification(error.message || 'Failed to delete account', 'error');
   }
 }
 
@@ -231,46 +293,11 @@ function confirmClearHistory() {
   );
   
   if (confirmed) {
-    console.log('Clearing chat history...');
+    // TODO: Implement clear history API call
     showNotification('Chat history cleared successfully!', 'success');
-    
-    // In production:
-    // await fetch('/api/user/clear-history', { method: 'POST' });
   }
 }
 
-// ============================================
-// ANIMATIONS (CSS in JS for notification)
-// ============================================
-
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideIn {
-    from {
-      transform: translateX(400px);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-  
-  @keyframes slideOut {
-    from {
-      transform: translateX(0);
-      opacity: 1;
-    }
-    to {
-      transform: translateX(400px);
-      opacity: 0;
-    }
-  }
-`;
-document.head.appendChild(style);
-
-// ============================================
-// INITIALIZE
-// ============================================
-
-console.log('✅ Profile page loaded');
+// Make functions global for onclick handlers
+window.confirmDeleteAccount = confirmDeleteAccount;
+window.confirmClearHistory = confirmClearHistory;

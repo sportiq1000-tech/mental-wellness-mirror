@@ -1,197 +1,278 @@
 /**
- * Mood Controller - Handles mood tracking and statistics
+ * Mood Controller
+ * UPDATED: User-specific mood tracking
  */
 
-const { getMoodHistory, getMoodStatistics, getAllEntries } = require('../services/databaseService');
+const { runQuery, getAll, getOne } = require('../models/database');
+const { catchAsync } = require('../middleware/errorHandler');
+const { ValidationError } = require('../utils/errorTypes');
 
 /**
- * Get mood history for charts
+ * Log a mood entry
+ * POST /api/moods
+ * Requires authentication
  */
-async function getMoodHistoryData(req, res) {
-  try {
-    const days = parseInt(req.query.days) || 7;
-    
-    if (days < 1 || days > 365) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'INVALID_RANGE',
-          message: 'Invalid date range',
-          details: 'Days must be between 1 and 365'
-        }
-      });
-    }
-    
-    const entries = await getMoodHistory(days);
-    const stats = await getMoodStatistics(days);
-    
-    // Determine trend
-    let trend = 'stable';
-    if (entries.length >= 3) {
-      const recentAvg = entries.slice(-3).reduce((sum, e) => sum + e.sentiment_score, 0) / 3;
-      const olderAvg = entries.slice(0, 3).reduce((sum, e) => sum + e.sentiment_score, 0) / 3;
-      
-      if (recentAvg - olderAvg > 0.1) trend = 'improving';
-      else if (olderAvg - recentAvg > 0.1) trend = 'declining';
-    }
-    
-    res.json({
-      success: true,
-      data: {
-        entries: entries.map(e => ({
-          timestamp: e.timestamp,
-          sentimentScore: e.sentiment_score,
-          sentimentLabel: e.sentiment_label,
-          snippet: e.snippet + '...'
-        })),
-        statistics: {
-          totalEntries: stats.total_entries || 0,
-          averageScore: parseFloat((stats.avg_score || 0).toFixed(3)),
-          positiveCount: stats.positive_count || 0,
-          neutralCount: stats.neutral_count || 0,
-          negativeCount: stats.negative_count || 0,
-          mostCommonEmotion: determineMostCommon(stats)
-        },
-        trend
-      }
-    });
-    
-  } catch (error) {
-    console.error('Mood history error:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'DATABASE_ERROR',
-        message: 'Failed to retrieve mood history',
-        details: error.message
-      }
-    });
+const logMood = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const { mood, note, intensity } = req.body;
+
+  // Validation
+  if (!mood || typeof mood !== 'string') {
+    throw new ValidationError('Mood is required');
   }
-}
 
-/**
- * Get recent mood data (for dashboard)
- */
-async function getRecentMoodData(req, res) {
-  try {
-    const limit = parseInt(req.query.limit) || 10;
-    const entries = await getMoodHistory(7);
-    
-    res.json({
-      success: true,
-      data: {
-        recent: entries.slice(0, limit).map(e => ({
-          timestamp: e.timestamp,
-          score: e.sentiment_score,
-          label: e.sentiment_label
-        }))
-      }
-    });
-    
-  } catch (error) {
-    console.error('Recent mood error:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'DATABASE_ERROR',
-        message: 'Failed to retrieve recent mood data',
-        details: error.message
-      }
-    });
+  const validMoods = ['positive', 'neutral', 'negative', 'happy', 'sad', 'anxious', 'calm', 'stressed'];
+  if (!validMoods.includes(mood.toLowerCase())) {
+    throw new ValidationError(`Mood must be one of: ${validMoods.join(', ')}`);
   }
-}
+
+  const moodIntensity = intensity ? parseInt(intensity) : 3;
+  if (isNaN(moodIntensity) || moodIntensity < 1 || moodIntensity > 5) {
+    throw new ValidationError('Intensity must be between 1 and 5');
+  }
+
+  const timestamp = new Date().toISOString();
+  const date = timestamp.split('T')[0];
+
+  // Insert mood entry
+  const entrySql = `
+    INSERT INTO entries (
+      user_id,
+      timestamp,
+      user_text,
+      ai_response,
+      sentiment_label,
+      sentiment_score,
+      created_at
+    )
+    VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+  `;
+
+  const moodText = note || `Feeling ${mood}`;
+  const moodScore = moodIntensity / 5; // Normalize to 0-1
+
+  const result = await runQuery(entrySql, [
+    userId,
+    timestamp,
+    moodText,
+    `Noted. You're feeling ${mood}.`,
+    mood,
+    moodScore
+  ]);
+
+  // Update daily statistics
+  await updateMoodStatistics(userId, date);
+
+  res.json({
+    success: true,
+    message: 'Mood logged successfully',
+    data: {
+      entryId: result.id,
+      mood,
+      intensity: moodIntensity,
+      timestamp
+    }
+  });
+});
 
 /**
- * Export all data
+ * Get mood history
+ * GET /api/moods/history
+ * Requires authentication
  */
-async function exportAllData(req, res) {
-  try {
-    const format = req.query.format || 'json';
-    const days = parseInt(req.query.days) || 365;
-    
-    const entries = await getAllEntries();
-    const stats = await getMoodStatistics(days);
-    
-    // Filter entries by days
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - days);
-    
-    const filteredEntries = entries.filter(e => new Date(e.timestamp) >= cutoffDate);
-    
-    const exportData = {
-      exportMetadata: {
-        exportDate: new Date().toISOString(),
-        appVersion: '1.0.0',
-        totalEntries: filteredEntries.length,
-        dateRange: {
-          start: filteredEntries.length > 0 ? filteredEntries[filteredEntries.length - 1].timestamp : null,
-          end: filteredEntries.length > 0 ? filteredEntries[0].timestamp : null
-        }
+const getMoodHistory = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const { days = 30 } = req.query;
+
+  const parsedDays = parseInt(days);
+  if (isNaN(parsedDays) || parsedDays < 1 || parsedDays > 365) {
+    throw new ValidationError('Days must be between 1 and 365');
+  }
+
+  const sql = `
+    SELECT
+      id,
+      timestamp,
+      sentiment_label as mood,
+      sentiment_score as score,
+      user_text as note
+    FROM entries
+    WHERE user_id = ?
+      AND timestamp > datetime('now', '-${parsedDays} days')
+    ORDER BY timestamp DESC
+  `;
+
+  const moods = await getAll(sql, [userId]);
+
+  res.json({
+    success: true,
+    data: {
+      moods,
+      period: `${parsedDays} days`
+    }
+  });
+});
+
+/**
+ * Get mood statistics
+ * GET /api/moods/stats
+ * Requires authentication
+ */
+const getMoodStats = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const { days = 30 } = req.query;
+
+  const parsedDays = parseInt(days);
+  if (isNaN(parsedDays) || parsedDays < 1 || parsedDays > 365) {
+    throw new ValidationError('Days must be between 1 and 365');
+  }
+
+  // Overall statistics
+  const overallSql = `
+    SELECT
+      COUNT(*) as total_entries,
+      AVG(sentiment_score) as avg_score,
+      MAX(sentiment_score) as max_score,
+      MIN(sentiment_score) as min_score
+    FROM entries
+    WHERE user_id = ?
+      AND timestamp > datetime('now', '-${parsedDays} days')
+  `;
+
+  const overall = await getOne(overallSql, [userId]);
+
+  // Mood distribution
+  const distributionSql = `
+    SELECT
+      sentiment_label as mood,
+      COUNT(*) as count,
+      AVG(sentiment_score) as avg_score
+    FROM entries
+    WHERE user_id = ?
+      AND timestamp > datetime('now', '-${parsedDays} days')
+    GROUP BY sentiment_label
+    ORDER BY count DESC
+  `;
+
+  const distribution = await getAll(distributionSql, [userId]);
+
+  // Daily statistics
+  const dailySql = `
+    SELECT
+      DATE(timestamp) as date,
+      COUNT(*) as entry_count,
+      AVG(sentiment_score) as avg_score
+    FROM entries
+    WHERE user_id = ?
+      AND timestamp > datetime('now', '-${parsedDays} days')
+    GROUP BY DATE(timestamp)
+    ORDER BY date DESC
+  `;
+
+  const daily = await getAll(dailySql, [userId]);
+
+  res.json({
+    success: true,
+    data: {
+      overall: {
+        totalEntries: overall.total_entries || 0,
+        averageScore: overall.avg_score || 0,
+        maxScore: overall.max_score || 0,
+        minScore: overall.min_score || 0
       },
-      entries: filteredEntries.map(e => ({
-        id: e.id,
-        timestamp: e.timestamp,
-        reflection: e.user_text,
-        aiResponse: e.ai_response,
-        sentiment: {
-          label: e.sentiment_label,
-          score: e.sentiment_score
-        }
-      })),
-      statistics: {
-        averageSentiment: parseFloat((stats.avg_score || 0).toFixed(3)),
-        moodDistribution: {
-          positive: stats.positive_count || 0,
-          neutral: stats.neutral_count || 0,
-          negative: stats.negative_count || 0
-        }
-      }
-    };
-    
-    if (format === 'json') {
-      const filename = `wellness-journal-${new Date().toISOString().split('T')[0]}.json`;
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      res.setHeader('Content-Type', 'application/json');
-      res.json(exportData);
-    } else {
-      res.status(400).json({
-        success: false,
-        error: {
-          code: 'INVALID_FORMAT',
-          message: 'Unsupported export format',
-          details: 'Only JSON format is supported'
-        }
-      });
+      distribution,
+      daily,
+      period: `${parsedDays} days`
     }
-    
-  } catch (error) {
-    console.error('Export error:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'EXPORT_ERROR',
-        message: 'Failed to export data',
-        details: error.message
-      }
-    });
-  }
-}
+  });
+});
 
 /**
- * Helper: Determine most common emotion
+ * Get mood trends
+ * GET /api/moods/trends
+ * Requires authentication
  */
-function determineMostCommon(stats) {
-  const counts = {
-    Positive: stats.positive_count || 0,
-    Neutral: stats.neutral_count || 0,
-    Negative: stats.negative_count || 0
-  };
-  
-  return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+const getMoodTrends = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const { days = 30 } = req.query;
+
+  const parsedDays = parseInt(days);
+
+  const sql = `
+    SELECT
+      DATE(timestamp) as date,
+      AVG(sentiment_score) as avg_score,
+      COUNT(*) as count,
+      GROUP_CONCAT(sentiment_label) as moods
+    FROM entries
+    WHERE user_id = ?
+      AND timestamp > datetime('now', '-${parsedDays} days')
+    GROUP BY DATE(timestamp)
+    ORDER BY date ASC
+  `;
+
+  const trends = await getAll(sql, [userId]);
+
+  // Calculate trend direction
+  let trendDirection = 'stable';
+  if (trends.length >= 7) {
+    const recentWeek = trends.slice(-7);
+    const previousWeek = trends.slice(-14, -7);
+    
+    if (recentWeek.length > 0 && previousWeek.length > 0) {
+      const recentAvg = recentWeek.reduce((sum, t) => sum + t.avg_score, 0) / recentWeek.length;
+      const previousAvg = previousWeek.reduce((sum, t) => sum + t.avg_score, 0) / previousWeek.length;
+      
+      if (recentAvg > previousAvg * 1.1) trendDirection = 'improving';
+      else if (recentAvg < previousAvg * 0.9) trendDirection = 'declining';
+    }
+  }
+
+  res.json({
+    success: true,
+    data: {
+      trends,
+      trendDirection,
+      period: `${parsedDays} days`
+    }
+  });
+});
+
+/**
+ * Update mood statistics helper function
+ */
+async function updateMoodStatistics(userId, date) {
+  try {
+    const sql = `
+      INSERT INTO mood_statistics (user_id, date, entry_count, avg_sentiment, positive_count, neutral_count, negative_count)
+      SELECT
+        user_id,
+        DATE(timestamp) as date,
+        COUNT(*) as entry_count,
+        AVG(sentiment_score) as avg_sentiment,
+        SUM(CASE WHEN sentiment_label IN ('positive', 'happy', 'calm') THEN 1 ELSE 0 END) as positive_count,
+        SUM(CASE WHEN sentiment_label = 'neutral' THEN 1 ELSE 0 END) as neutral_count,
+        SUM(CASE WHEN sentiment_label IN ('negative', 'sad', 'anxious', 'stressed') THEN 1 ELSE 0 END) as negative_count
+      FROM entries
+      WHERE user_id = ? AND DATE(timestamp) = ?
+      GROUP BY user_id, DATE(timestamp)
+      ON CONFLICT(user_id, date) DO UPDATE SET
+        entry_count = excluded.entry_count,
+        avg_sentiment = excluded.avg_sentiment,
+        positive_count = excluded.positive_count,
+        neutral_count = excluded.neutral_count,
+        negative_count = excluded.negative_count
+    `;
+
+    await runQuery(sql, [userId, date]);
+  } catch (error) {
+    console.warn('Failed to update mood statistics:', error);
+  }
 }
 
 module.exports = {
-  getMoodHistoryData,
-  getRecentMoodData,
-  exportAllData
+  logMood,
+  getMoodHistory,
+  getMoodStats,
+  getMoodTrends
 };

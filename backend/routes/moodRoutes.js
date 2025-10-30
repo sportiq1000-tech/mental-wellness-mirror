@@ -1,18 +1,65 @@
 /**
- * Mood Routes - API endpoints for mood tracking
+ * Mood Routes
+ * UPDATED: Protected with authentication
  */
 
 const express = require('express');
 const router = express.Router();
-const { getMoodHistoryData, getRecentMoodData, exportAllData } = require('../controllers/moodController');
 
-// GET /api/moods/history - Get mood history with statistics
-router.get('/history', getMoodHistoryData);
+const {
+  logMood,
+  getMoodHistory,
+  getMoodStats,
+  getMoodTrends
+} = require('../controllers/moodController');
 
-// GET /api/moods/recent - Get recent mood data
-router.get('/recent', getRecentMoodData);
+// Middleware
+const { authenticateJWT } = require('../middleware/auth');
+const { validateMoodEntry } = require('../utils/validators');
+const { ValidationError } = require('../utils/errorTypes');
 
-// GET /api/moods/export - Export all data
-router.get('/export', exportAllData);
+// ============================================
+// ALL ROUTES REQUIRE AUTHENTICATION
+// ============================================
+
+router.use(authenticateJWT);
+
+/**
+ * @route   POST /api/moods
+ * @desc    Log a mood entry
+ * @access  Private
+ */
+router.post('/', (req, res, next) => {
+  try {
+    validateMoodEntry(req.body);
+    next();
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return res.status(400).json(error.toJSON());
+    }
+    next(error);
+  }
+}, logMood);
+
+/**
+ * @route   GET /api/moods/history
+ * @desc    Get mood history
+ * @access  Private
+ */
+router.get('/history', getMoodHistory);
+
+/**
+ * @route   GET /api/moods/stats
+ * @desc    Get mood statistics
+ * @access  Private
+ */
+router.get('/stats', getMoodStats);
+
+/**
+ * @route   GET /api/moods/trends
+ * @desc    Get mood trends
+ * @access  Private
+ */
+router.get('/trends', getMoodTrends);
 
 module.exports = router;

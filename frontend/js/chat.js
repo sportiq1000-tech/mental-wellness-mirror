@@ -1,7 +1,30 @@
 /**
  * Chat Interface - Mental Wellness Mirror
- * Connects to real backend API
+ * UPDATED: Requires authentication
  */
+
+// ============================================
+// AUTHENTICATION CHECK (ADD AT TOP)
+// ============================================
+if (!window.authManager || !window.authManager.requireAuth()) {
+  // Will redirect to login if not authenticated
+  throw new Error('Authentication required');
+}
+
+// Load user info
+const currentUser = window.authManager.getCurrentUser();
+if (currentUser) {
+  console.log('✅ Chat loaded for user:', currentUser.email);
+  
+  // Update user info in sidebar (if elements exist)
+  const userName = document.querySelector('.user-name');
+  const userEmail = document.querySelector('.user-email');
+  
+  if (userName) userName.textContent = currentUser.fullName || currentUser.username || 'User';
+  if (userEmail) userEmail.textContent = currentUser.email;
+}
+
+// ... rest of your existing chat.js code below ...
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('✅ Chat.js loaded successfully');
@@ -180,37 +203,19 @@ async function sendChatMessage() {
   const typingIndicator = showTypingIndicator();
 
   try {
-    // Make API call to backend
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        text: messageText,              // ✅ Changed from 'message' to 'text'
-        includeContext: true             // ✅ Get context from recent entries
-      })
-    });
+    // Make API call using api client (handles auth automatically)
+    const data = await window.api.sendChatMessage(messageText, true);
 
     // Remove typing indicator
     if (typingIndicator) typingIndicator.remove();
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('API Error:', errorData);
-      throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('📥 Received response:', data);
-
     // Add AI response to UI
     if (data.success && data.data) {
       addMessage(
-        data.data.aiResponse,           // ✅ Backend returns 'aiResponse'
+        data.data.aiResponse,
         'ai',
-        data.data.sentiment?.label,     // ✅ Use sentiment label
-        data.data.sentiment?.emoji      // ✅ Use sentiment emoji
+        data.data.sentiment?.label,
+        data.data.sentiment?.emoji
       );
 
       // Log stats for debugging
@@ -235,8 +240,11 @@ async function sendChatMessage() {
       errorMessage = "Please write a bit more (at least 10 characters).";
     } else if (error.message.includes('TEXT_TOO_LONG')) {
       errorMessage = "Your message is too long. Please keep it under 5000 characters.";
+    } else if (error.statusCode === 401) {
+      errorMessage = "Your session has expired. Please log in again.";
+      setTimeout(() => window.location.href = '/pages/login.html', 2000);
     } else {
-      errorMessage += "Please check that the server is running and try again.";
+      errorMessage += "Please try again.";
     }
 
     addMessage(errorMessage, 'ai');
