@@ -148,7 +148,8 @@ class MentalWellnessApp {
                     response.data.aiResponse,
                     'ai',
                     response.data.sentiment,
-                    response.data.timestamp
+                    response.data.timestamp,
+                    response.data.source  // ✅ NEW: Pass source
                 );
                 
                 // Update stats
@@ -183,50 +184,62 @@ class MentalWellnessApp {
         }
     }
     
-    addMessageToChat(text, type, sentiment = null, timestamp = null) {
-        const chatMessages = document.getElementById('chatMessages');
-        if (!chatMessages) return;
-        
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${type}-message`;
-        
-        const avatarIcon = type === 'user' ? 'fa-user' : 'fa-robot';
-        
-        let metaHTML = '';
-        if (sentiment) {
-            metaHTML = `
-                <div class="message-meta">
-                    <span class="sentiment-badge ${sentiment.label.toLowerCase()}">
-                        ${sentiment.emoji} ${sentiment.label}
-                    </span>
-                    <span class="message-time">${formatTimestamp(timestamp || new Date())}</span>
-                </div>
-            `;
+   addMessageToChat(text, type, sentiment = null, timestamp = null, source = null) {
+    const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}-message`;
+    
+    const avatarIcon = type === 'user' ? 'fa-user' : 'fa-robot';
+    
+    // ✅ NEW: Add source indicator for AI messages
+    let sourceIndicator = '';
+    if (type === 'ai' && source) {
+        if (source === 'groq') {
+            sourceIndicator = '<span class="ai-source groq-source" title="Powered by Groq AI"><i class="fas fa-bolt"></i> AI</span>';
+        } else if (source === 'fallback') {
+            sourceIndicator = '<span class="ai-source fallback-source" title="Fallback response (AI unavailable)"><i class="fas fa-exclamation-triangle"></i> Offline</span>';
         }
-        
-        messageDiv.innerHTML = `
-            <div class="message-avatar">
-                <i class="fas ${avatarIcon}"></i>
-            </div>
-            <div class="message-content">
-                <p>${sanitizeHTML(text)}</p>
-                ${metaHTML}
+    }
+    
+    let metaHTML = '';
+    if (sentiment) {
+        metaHTML = `
+            <div class="message-meta">
+                ${sourceIndicator}
+                <span class="sentiment-badge ${sentiment.label.toLowerCase()}">
+                    ${sentiment.emoji} ${sentiment.label}
+                </span>
+                <span class="message-time">${formatTimestamp(timestamp || new Date())}</span>
             </div>
         `;
-        
-        chatMessages.appendChild(messageDiv);
-        
-        // Scroll to bottom
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        
-        // Store in memory
-        this.chatMessages.push({
-            text,
-            type,
-            sentiment,
-            timestamp: timestamp || new Date().toISOString()
-        });
     }
+    
+    messageDiv.innerHTML = `
+        <div class="message-avatar">
+            <i class="fas ${avatarIcon}"></i>
+        </div>
+        <div class="message-content">
+            <p>${sanitizeHTML(text)}</p>
+            ${metaHTML}
+        </div>
+    `;
+    
+    chatMessages.appendChild(messageDiv);
+    
+    // Scroll to bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Store in memory
+    this.chatMessages.push({
+        text,
+        type,
+        sentiment,
+        timestamp: timestamp || new Date().toISOString(),
+        source
+    });
+}
     
     updateQuickStats(stats) {
         if (!stats) return;

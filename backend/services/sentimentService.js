@@ -4,6 +4,8 @@
 
 const { spawn } = require('child_process');
 const path = require('path');
+const os = require('os');
+const { getHybridSentiment } = require('./aiSentimentService');
 
 const PYTHON_PATH = process.env.PYTHON_PATH || 'python3';
 const SENTIMENT_SCRIPT = path.join(__dirname, '../python/sentiment_analyzer.py');
@@ -106,12 +108,18 @@ function fallbackSentimentAnalysis(text) {
  * Analyze sentiment with fallback
  */
 async function analyzeSentimentSafe(text) {
-  try {
-    return await analyzeSentiment(text);
-  } catch (error) {
-    console.warn('VADER analysis failed, using fallback:', error.message);
-    return fallbackSentimentAnalysis(text);
-  }
+    try {
+        // First, get VADER analysis
+        const vaderResult = await analyzeSentiment(text);
+        
+        // Then, enhance with AI (if available)
+        const hybridResult = await getHybridSentiment(text, vaderResult);
+        
+        return hybridResult;
+    } catch (error) {
+        console.warn('VADER analysis failed, using fallback:', error.message);
+        return fallbackSentimentAnalysis(text);
+    }
 }
 
 module.exports = {

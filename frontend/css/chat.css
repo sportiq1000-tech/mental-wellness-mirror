@@ -284,3 +284,49 @@
         font-size: 0.875rem;
     }
 }
+/* ============================================
+   AI SOURCE INDICATORS
+   ============================================ */
+.ai-source {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.groq-source {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+}
+
+.fallback-source {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: white;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+}
+
+.ai-source i {
+    font-size: 0.7rem;
+}
+
+/* Animation for source badge */
+.ai-source {
+    animation: badgeFadeIn 0.3s ease-out;
+}
+
+@keyframes badgeFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

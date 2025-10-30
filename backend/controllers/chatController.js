@@ -6,9 +6,6 @@ const { generateAIResponse, getFallbackResponse } = require('../services/groqSer
 const { analyzeSentimentSafe } = require('../services/sentimentService');
 const { insertEntry, getRecentEntries, getMoodStatistics } = require('../services/databaseService');
 
-/**
- * Handle chat/reflection submission
- */
 async function handleChatMessage(req, res) {
   try {
     const { text, includeContext } = req.body;
@@ -59,14 +56,21 @@ async function handleChatMessage(req, res) {
       }
     }
     
-    // Parallel processing: AI response + Sentiment analysis
-    const [aiResponse, sentiment] = await Promise.all([
-      generateAIResponse(trimmedText, recentEntries).catch(err => {
-        console.error('Groq API failed:', err);
-        return getFallbackResponse();
-      }),
-      analyzeSentimentSafe(trimmedText)
-    ]);
+    // Track if we used fallback
+    let usedFallback = false;
+    let aiResponse;
+    
+    // Try Groq API, use fallback if it fails
+    try {
+      aiResponse = await generateAIResponse(trimmedText, recentEntries);
+    } catch (error) {
+      console.error('Groq API failed:', error);
+      aiResponse = getFallbackResponse();
+      usedFallback = true;  // ✅ TRACK FALLBACK USAGE
+    }
+    
+    // Sentiment analysis
+    const sentiment = await analyzeSentimentSafe(trimmedText);
     
     // Save to database
     const timestamp = new Date().toISOString();
@@ -108,7 +112,8 @@ async function handleChatMessage(req, res) {
           totalEntries: stats.total_entries || 0,
           moodStreak,
           weekAverage: stats.avg_score || 0
-        }
+        },
+        source: usedFallback ? 'fallback' : 'groq'  // ✅ NEW: Tell frontend which source
       }
     });
     
