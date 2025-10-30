@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: mental-wellness-mirror
+    env: node
+    buildCommand: npm install
+    startCommand: node backend/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GROQ_API_KEY
+        sync: false
+      - key: FOURSQUARE_API_KEY
+        sync: false
+      - key: PYTHON_PATH
+        value: python3
+    autoDeploy: true

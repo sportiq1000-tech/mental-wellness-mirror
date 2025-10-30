@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Mental Wellness Mirror - Your AI-powered emotional reflection companion">
+    <title>Mental Wellness Mirror 🧠</title>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/chat.css">
+    <link rel="stylesheet" href="css/charts.css">
+    <link rel="stylesheet" href="css/dark-mode.css">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+</head>
+<body class="light-theme">
+    
+    <!-- ============================================ -->
+    <!-- HEADER / NAVIGATION -->
+    <!-- ============================================ -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-brain"></i>
+                    <h1>Mental Wellness Mirror</h1>
+                </div>
+                
+                <nav class="nav">
+                    <button class="nav-btn active" data-page="landing" title="Home">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </button>
+                    <button class="nav-btn" data-page="dashboard" title="Dashboard">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Dashboard</span>
+                    </button>
+                    <button class="nav-btn" id="exportBtn" title="Export Data">
+                        <i class="fas fa-download"></i>
+                        <span>Export</span>
+                    </button>
+                    <button class="nav-btn" id="themeToggle" title="Toggle Dark Mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <!-- ============================================ -->
+    <!-- MAIN CONTENT AREA -->
+    <!-- ============================================ -->
+    <main class="main-content">
+        
+        <!-- ============================================ -->
+        <!-- LANDING PAGE -->
+        <!-- ============================================ -->
+        <section class="page active" id="landingPage">
+            <div class="container">
+                
+                <!-- Hero Section -->
+                <div class="hero-section">
+                    <div class="hero-content">
+                        <h2 class="hero-title">Welcome to Your Safe Space 🌟</h2>
+                        <p class="hero-subtitle">
+                            Your private AI companion for emotional reflection and mental wellness tracking
+                        </p>
+                        <div class="hero-features">
+                            <div class="feature-tag">
+                                <i class="fas fa-lock"></i> 100% Private
+                            </div>
+                            <div class="feature-tag">
+                                <i class="fas fa-robot"></i> AI-Powered
+                            </div>
+                            <div class="feature-tag">
+                                <i class="fas fa-heart"></i> Empathetic
+                            </div>
+                            <div class="feature-tag">
+                                <i class="fas fa-chart-bar"></i> Insightful
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="quick-stats" id="quickStats">
+                    <div class="stat-card">
+                        <i class="fas fa-book"></i>
+                        <div class="stat-info">
+                            <span class="stat-number" id="totalEntries">0</span>
+                            <span class="stat-label">Total Reflections</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-fire"></i>
+                        <div class="stat-info">
+                            <span class="stat-number" id="moodStreak">0</span>
+                            <span class="stat-label">Day Streak</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-smile"></i>
+                        <div class="stat-info">
+                            <span class="stat-number" id="positivePercent">0%</span>
+                            <span class="stat-label">Positive Moments</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chat Interface -->
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <h3><i class="fas fa-comments"></i> Share Your Thoughts</h3>
+                        <p>Express yourself freely. I'm here to listen and support.</p>
+                    </div>
+                    
+                    <!-- Chat Messages Area -->
+                    <div class="chat-messages" id="chatMessages">
+                        <!-- Welcome message -->
+                        <div class="message ai-message">
+                            <div class="message-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="message-content">
+                                <p>Hello! I'm your Mental Wellness Mirror. Share what's on your mind, and I'll provide a supportive reflection. Your thoughts are safe here. 💙</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Prompt Suggestions -->
+                    <div class="prompt-suggestions" id="promptSuggestions">
+                        <button class="prompt-btn" data-prompt="I'm feeling overwhelmed with work and don't know where to start...">
+                            <i class="fas fa-briefcase"></i> Work stress
+                        </button>
+                        <button class="prompt-btn" data-prompt="Today was surprisingly good because...">
+                            <i class="fas fa-sun"></i> Good day
+                        </button>
+                        <button class="prompt-btn" data-prompt="I can't stop worrying about...">
+                            <i class="fas fa-cloud-rain"></i> Anxiety
+                        </button>
+                        <button class="prompt-btn" data-prompt="I'm grateful for...">
+                            <i class="fas fa-heart"></i> Gratitude
+                        </button>
+                    </div>
+                    
+                    <!-- Chat Input -->
+                    <div class="chat-input-container">
+                        <form class="chat-form" id="chatForm">
+                            <textarea 
+                                class="chat-input" 
+                                id="chatInput" 
+                                placeholder="Type your thoughts here... (10-5000 characters)"
+                                rows="3"
+                                maxlength="5000"
+                            ></textarea>
+                            <div class="chat-actions">
+                                <span class="char-count" id="charCount">0 / 5000</span>
+                                <button type="submit" class="submit-btn" id="submitBtn">
+                                    <i class="fas fa-paper-plane"></i>
+                                    <span>Reflect</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+        
+        <!-- ============================================ -->
+        <!-- DASHBOARD PAGE -->
+        <!-- ============================================ -->
+        <section class="page" id="dashboardPage">
+            <div class="container">
+                
+                <div class="dashboard-header">
+                    <h2><i class="fas fa-chart-line"></i> Your Wellness Dashboard</h2>
+                    <p>Track your emotional patterns and insights over time</p>
+                </div>
+                
+                <!-- Dashboard Stats Grid -->
+                <div class="dashboard-stats">
+                    <div class="dashboard-card">
+                        <div class="card-icon positive">
+                            <i class="fas fa-smile-beam"></i>
+                        </div>
+                        <div class="card-content">
+                            <h4>Positive Reflections</h4>
+                            <p class="card-value" id="dashPositiveCount">0</p>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <div class="card-icon neutral">
+                            <i class="fas fa-meh"></i>
+                        </div>
+                        <div class="card-content">
+                            <h4>Neutral Reflections</h4>
+                            <p class="card-value" id="dashNeutralCount">0</p>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <div class="card-icon negative">
+                            <i class="fas fa-frown"></i>
+                        </div>
+                        <div class="card-content">
+                            <h4>Challenging Moments</h4>
+                            <p class="card-value" id="dashNegativeCount">0</p>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <div class="card-icon average">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="card-content">
+                            <h4>Average Mood</h4>
+                            <p class="card-value" id="dashAverageMood">0.00</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chart Controls -->
+                <div class="chart-controls">
+                    <h3>Mood Timeline</h3>
+                    <div class="time-range-buttons">
+                        <button class="time-btn active" data-days="7">7 Days</button>
+                        <button class="time-btn" data-days="30">30 Days</button>
+                        <button class="time-btn" data-days="90">90 Days</button>
+                    </div>
+                </div>
+                
+                <!-- Charts Section -->
+                <div class="charts-grid">
+                    <!-- Mood Timeline Chart -->
+                    <div class="chart-card large">
+                        <h4><i class="fas fa-line-chart"></i> Sentiment Over Time</h4>
+                        <div class="chart-wrapper">
+                            <canvas id="moodTimelineChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Emotion Distribution Chart -->
+                    <div class="chart-card">
+                        <h4><i class="fas fa-pie-chart"></i> Emotion Distribution</h4>
+                        <div class="chart-wrapper">
+                            <canvas id="emotionPieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Entries -->
+                <div class="recent-entries">
+                    <h3><i class="fas fa-history"></i> Recent Reflections</h3>
+                    <div class="entries-list" id="recentEntriesList">
+                        <p class="no-data">No reflections yet. Start sharing your thoughts!</p>
+                    </div>
+                </div>
+                
+                <!-- Wellness Resources -->
+                <div class="wellness-resources">
+                    <h3><i class="fas fa-leaf"></i> Find Calm Places Nearby</h3>
+                    <button class="location-btn" id="findPlacesBtn">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Find Wellness Spots
+                    </button>
+                    <div class="places-grid" id="placesGrid" style="display: none;"></div>
+                </div>
+                
+            </div>
+        </section>
+        
+    </main>
+    
+    <!-- ============================================ -->
+    <!-- LOADING OVERLAY -->
+    <!-- ============================================ -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p>Processing your reflection...</p>
+    </div>
+    
+    <!-- ============================================ -->
+    <!-- TOAST NOTIFICATIONS -->
+    <!-- ============================================ -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- ============================================ -->
+    <!-- FOOTER -->
+    <!-- ============================================ -->
+    <footer class="footer">
+        <div class="container">
+            <p>
+                <i class="fas fa-heart"></i> Mental Wellness Mirror - Your private space for emotional growth
+            </p>
+            <p class="crisis-info">
+                <strong>In crisis?</strong> 
+                <a href="tel:988">Call 988</a> (Suicide & Crisis Lifeline) | 
+                <a href="sms:741741">Text HOME to 741741</a> (Crisis Text Line)
+            </p>
+        </div>
+    </footer>
+    
+    <!-- ============================================ -->
+    <!-- JAVASCRIPT -->
+    <!-- ============================================ -->
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/darkMode.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/app.js"></script>
+    
+</body>
+</html>
