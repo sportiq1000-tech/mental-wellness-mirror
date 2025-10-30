@@ -3,46 +3,348 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Profile - Mental Wellness Mirror</title>
+  <title>Profile - Mental Wellness Mirror</title>
   
-  <!-- Fonts & Icons -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  
-  <!-- Styles - CORRECTED PATH -->
   <link rel="stylesheet" href="../css/shared.css">
+  <link rel="stylesheet" href="../css/profile.css">
 </head>
-<body>
+<body class="has-sidebar">
+  <!-- ============================================ -->
+  <!-- SIDEBAR (Same as dashboard) -->
+  <!-- ============================================ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2 class="sidebar-brand">🧠 Wellness Mirror</h2>
+      <button class="btn btn-primary btn-new-chat" onclick="location.href='chat.html'">
+        <span class="icon">💬</span> New Chat
+      </button>
+    </div>
 
-  <div style="padding: 2rem;">
-    <!-- CORRECTED PATH -->
-    <a href="chat.html" class="btn btn-secondary">
-      <i class="fas fa-arrow-left"></i> Back to Chat
-    </a>
-    
-    <div class="container-narrow" style="margin-top: 2rem;">
-      <h1>My Profile</h1>
-      
-      <div class="card" style="margin-top: 2rem;">
-        <form>
-          <div class="form-group">
-            <label for="name" class="form-label">Full Name</label>
-            <input type="text" id="name" class="form-input" value="Dhara" disabled>
-          </div>
-          <div class="form-group">
-            <label for="email" class="form-label">Email Address</label>
-            <input type="email" id="email" class="form-input" value="dhara@example.com" disabled>
-          </div>
-          <!-- CORRECTED PATH -->
-          <a href="../index.html" class="btn btn-error" style="width: 100%;">
-            Logout
-          </a>
-        </form>
+    <nav class="sidebar-nav">
+      <a href="chat.html" class="nav-link">
+        <span class="icon">💬</span> Chat
+      </a>
+      <a href="dashboard.html" class="nav-link">
+        <span class="icon">📊</span> Dashboard
+      </a>
+      <a href="#" class="nav-link" onclick="alert('History coming soon!')">
+        <span class="icon">📜</span> History
+      </a>
+    </nav>
+
+    <div class="sidebar-section">
+      <h3 class="sidebar-section-title">Recent Chats</h3>
+      <div class="chat-history-list">
+        <a href="#" class="chat-history-item">
+          <span class="chat-title">Feeling anxious today</span>
+          <span class="chat-date">2 hours ago</span>
+        </a>
+        <a href="#" class="chat-history-item">
+          <span class="chat-title">Morning reflection</span>
+          <span class="chat-date">Yesterday</span>
+        </a>
       </div>
     </div>
-  </div>
-  
-</body>
-</html>
+
+    <div class="sidebar-footer">
+      <div class="user-profile" onclick="location.href='profile.html'">
+        <div class="user-avatar">👤</div>
+        <div class="user-info">
+          <div class="user-name">John Doe</div>
+          <div class="user-email">john@example.com</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================ -->
+  <!-- MAIN PROFILE CONTENT -->
+  <!-- ============================================ -->
+  <main class="main-content">
+    <button class="btn-toggle-sidebar" id="toggleSidebar" aria-label="Toggle Sidebar">☰</button>
+
+    <div class="profile-container">
+      
+      <!-- Profile Header -->
+      <header class="profile-header">
+        <div class="profile-header-content">
+          <div class="profile-avatar-section">
+            <div class="profile-avatar-large">👤</div>
+            <button class="btn btn-secondary btn-sm">Change Photo</button>
+          </div>
+          <div class="profile-info-section">
+            <h1 class="profile-name">John Doe</h1>
+            <p class="profile-email">john@example.com</p>
+            <p class="profile-joined">Member since October 2024</p>
+          </div>
+        </div>
+      </header>
+
+      <!-- Profile Tabs -->
+      <div class="profile-tabs">
+        <button class="tab-btn active" data-tab="account">👤 Account</button>
+        <button class="tab-btn" data-tab="preferences">⚙️ Preferences</button>
+        <button class="tab-btn" data-tab="privacy">🔒 Privacy & Data</button>
+        <button class="tab-btn" data-tab="notifications">🔔 Notifications</button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="profile-content">
+        
+        <!-- ============================================ -->
+        <!-- ACCOUNT TAB -->
+        <!-- ============================================ -->
+        <section class="tab-panel active" data-panel="account">
+          <h2 class="section-title">Account Information</h2>
+          
+          <div class="card">
+            <form class="profile-form" id="accountForm">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="firstName">First Name</label>
+                  <input type="text" id="firstName" class="form-input" value="John" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="lastName">Last Name</label>
+                  <input type="text" id="lastName" class="form-input" value="Doe" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <input type="email" id="email" class="form-input" value="john@example.com" required>
+                <p class="form-help">We'll send important updates to this email</p>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="phone">Phone Number (Optional)</label>
+                <input type="tel" id="phone" class="form-input" placeholder="+1 (555) 000-0000">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="timezone">Timezone</label>
+                <select id="timezone" class="form-input">
+                  <option value="America/New_York">Eastern Time (ET)</option>
+                  <option value="America/Chicago">Central Time (CT)</option>
+                  <option value="America/Denver">Mountain Time (MT)</option>
+                  <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                </select>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="button" class="btn btn-secondary">Cancel</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Change Password Section -->
+          <h2 class="section-title" style="margin-top: 2rem;">Change Password</h2>
+          <div class="card">
+            <form class="profile-form" id="passwordForm">
+              <div class="form-group">
+                <label class="form-label" for="currentPassword">Current Password</label>
+                <input type="password" id="currentPassword" class="form-input" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="newPassword">New Password</label>
+                <input type="password" id="newPassword" class="form-input" required>
+                <div class="password-strength" id="passwordStrength">
+                  <div class="strength-bar"></div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="confirmPassword">Confirm New Password</label>
+                <input type="password" id="confirmPassword" class="form-input" required>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Update Password</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Danger Zone -->
+          <h2 class="section-title section-danger" style="margin-top: 2rem;">Danger Zone</h2>
+          <div class="card card-danger">
+            <div class="danger-action">
+              <div>
+                <h3 class="danger-title">Delete Account</h3>
+                <p class="danger-description">Permanently delete your account and all your data. This action cannot be undone.</p>
+              </div>
+              <button class="btn btn-danger" onclick="confirmDeleteAccount()">Delete Account</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- PREFERENCES TAB -->
+        <!-- ============================================ -->
+        <section class="tab-panel" data-panel="preferences">
+          <h2 class="section-title">Appearance & Preferences</h2>
+          
+          <div class="card">
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3 class="preference-title">🌓 Theme</h3>
+                <p class="preference-description">Choose your preferred color scheme</p>
+              </div>
+              <select class="form-input" id="themeSelect" style="max-width: 200px;">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="auto">Auto (System)</option>
+              </select>
+            </div>
+
+            <div class="preference-divider"></div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3 class="preference-title">💬 Chat Interface</h3>
+                <p class="preference-description">Customize your chat experience</p>
+              </div>
+              <div class="preference-controls">
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Show timestamps</span>
+                </label>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Enable sound effects</span>
+                </label>
+                <label class="toggle-switch">
+                  <input type="checkbox">
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Compact mode</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="preference-divider"></div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3 class="preference-title">🗣️ Voice Features</h3>
+                <p class="preference-description">Configure voice input and output</p>
+              </div>
+              <div class="preference-controls">
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Enable voice input</span>
+                </label>
+                <label class="toggle-switch">
+                  <input type="checkbox">
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Text-to-speech responses</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="preference-divider"></div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3 class="preference-title">📊 Data & Analytics</h3>
+                <p class="preference-description">Control what data is tracked</p>
+              </div>
+              <div class="preference-controls">
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Track mood patterns</span>
+                </label>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Activity analytics</span>
+                </label>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Weekly insights email</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- PRIVACY TAB -->
+        <!-- ============================================ -->
+        <section class="tab-panel" data-panel="privacy">
+          <h2 class="section-title">Privacy & Data Management</h2>
+          
+          <div class="card">
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3 class="preference-title">🔒 Data Privacy</h3>
+                <p class="preference-description">Your conversations are encrypted and private</p>
+              </div>
+              <span class="badge badge-success">✓ End-to-End Encrypted</span>
+            </div>
+
+            <div class="preference-divider"></div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3 class="preference-title">📥 Download Your Data</h3>
+                <p class="preference-description">Get a copy of all your data in JSON format</p>
+              </div>
+              <button class="btn btn-secondary">Request Download</button>
+            </div>
+
+            <div class="preference-divider"></div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3 class="preference-title">🗑️ Clear Chat History</h3>
+                <p class="preference-description">Delete all your conversation history</p>
+              </div>
+              <button class="btn btn-danger-outline" onclick="confirmClearHistory()">Clear History</button>
+            </div>
+
+            <div class="preference-divider"></div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3 class="preference-title">👁️ Data Visibility</h3>
+                <p class="preference-description">Control who can see your wellness data</p>
+              </div>
+              <div class="preference-controls">
+                <label class="toggle-switch">
+                  <input type="checkbox">
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Share anonymized data for research</span>
+                </label>
+                <label class="toggle-switch">
+                  <input type="checkbox">
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Allow data for product improvements</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-box">
+            <h4>🛡️ How We Protect Your Data</h4>
+            <ul>
+              <li>All conversations are encrypted end-to-end</li>
+              <li>We never share your personal data with third parties</li>
+              <li>You can delete your data at any time</li>
+              <li>We comply with GDPR, HIPAA, and CCPA regulations</li>
+            </ul>
+            <a href="#" class="link">Read our full Privacy Policy →</a>
+          </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- NOTIFICATIONS TAB -->
+        <!-- ============================================ -->
+        <section class="tab-panel" data-panel="notifications">
+          <h2 class="section-title">Notification Preferences</h2>
+          

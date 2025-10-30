@@ -45,7 +45,7 @@
             <i class="fas fa-comments"></i>
             <span>Chat</span>
           </a>
-          <a href="#" class="nav-item">
+          <a href="dashboard.html" class="nav-item">
             <i class="fas fa-chart-line"></i>
             <span>Dashboard</span>
           </a>
@@ -137,28 +137,32 @@
         <!-- Chat Messages will be dynamically added here -->
         
       </div>
-      
-      <div class="chat-input-area">
-        <div class="chat-input-wrapper">
-          <div class="chat-input-container">
-            <textarea id="chatInput" placeholder="Type your message here..." rows="1"></textarea>
-          </div>
-          <div class="chat-input-actions">
-            <div class="input-tools">
-              <button class="tool-btn" title="Attach File">
-                <i class="fas fa-paperclip"></i>
-              </button>
-              <button class="tool-btn" title="Use Microphone">
-                <i class="fas fa-microphone"></i>
-              </button>
-            </div>
-            <button class="send-btn" id="sendBtn" title="Send Message">
-              <i class="fas fa-paper-plane"></i>
-            </button>
-          </div>
-          <div class="char-counter">0 / 5000</div>
+     <div class="chat-input-area">
+  <div class="chat-input-wrapper">
+    <div class="chat-input-container">
+      <textarea 
+        id="chatInput" 
+        class="chat-input"
+        placeholder="Type your message here..." 
+        rows="1"
+      ></textarea>
+      <div class="chat-input-actions">
+        <div class="input-tools">
+          <button class="tool-btn" title="Attach File">
+            <i class="fas fa-paperclip"></i>
+          </button>
+          <button class="tool-btn" title="Use Microphone">
+            <i class="fas fa-microphone"></i>
+          </button>
         </div>
+        <button class="send-btn" id="sendBtn" title="Send Message">
+          <i class="fas fa-paper-plane"></i>
+        </button>
       </div>
+    </div>
+    <div class="char-counter">0 / 5000</div>
+  </div>
+</div>
       
     </main>
     
@@ -168,6 +172,6 @@
   </div>
 
   <!-- Scripts - CORRECTED PATH -->
-  <script src="../js/chat.js"></script>
+  <script src="/js/chat.js"></script>
 </body>
 </html>

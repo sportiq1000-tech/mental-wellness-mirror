@@ -1,12 +1,11 @@
 /**
  * Mental Wellness Mirror - Main Server File
- * Express.js backend for AI-powered emotional reflection
+ * CORRECTED for new UI structure and proper SPA serving
  */
 
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const path = require('path');
 
 // Import database initialization
@@ -33,74 +32,59 @@ app.use(cors({
   credentials: true
 }));
 
-// Body parser middleware
-app.use(bodyParser.json({ limit: '10mb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
-
-// Serve static frontend files
-app.use(express.static(path.join(__dirname, '../frontend')));
-
-// Serve audio files
-app.use('/api/audio', express.static(path.join(__dirname, 'temp/audio')));
+// Body parser middleware (using modern Express built-in)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging middleware (simple)
 app.use((req, res, next) => {
   const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${req.method} ${req.path}`);
+  console.log(`[${timestamp}] ${req.method} ${req.originalUrl}`);
   next();
 });
 
+
 // ============================================
-// API ROUTES
+// API ROUTES (Handled before static files)
 // ============================================
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
-    message: 'Mental Wellness Mirror API is running',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    message: 'Mental Wellness Mirror API is running'
   });
 });
 
-// Chat routes (AI reflection)
+// All API routes
 app.use('/api/chat', chatRoutes);
-
-// Mood tracking routes
 app.use('/api/moods', moodRoutes);
-
-// Voice routes (TTS)
 app.use('/api/voice', voiceRoutes);
-
-// Places routes (Wellness locations)
 app.use('/api/places', placeRoutes);
 
+
 // ============================================
-// ERROR HANDLING MIDDLEWARE
+// FRONTEND SERVING (Static files and SPA catch-all)
 // ============================================
 
-// 404 handler for API routes (must come before catch-all)
-app.use('/api/*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    error: {
-      code: 'NOT_FOUND',
-      message: 'API endpoint not found',
-      path: req.path
-    }
-  });
-});
+// Serve temporary audio files from API path
+app.use('/api/audio', express.static(path.join(__dirname, 'temp/audio')));
 
-// Catch-all route for frontend (SPA support)
-// This MUST be after all API routes
+// Serve all static files from the 'frontend' directory
+app.use(express.static(path.join(__dirname, '../frontend')));
+
+// Catch-all route for Single Page Application (SPA) support:
+// This sends the main index.html for any request that doesn't match an API route or a static file.
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+  res.sendFile(path.resolve(__dirname, '../frontend', 'index.html'));
 });
 
-// Global error handler
+
+// ============================================
+// ERROR HANDLING MIDDLEWARE (must be the last app.use call)
+// ============================================
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  console.error('SERVER ERROR:', err.stack);
   
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal server error';
@@ -109,8 +93,7 @@ app.use((err, req, res, next) => {
     success: false,
     error: {
       code: err.code || 'INTERNAL_ERROR',
-      message: message,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+      message: message
     }
   });
 });
@@ -132,10 +115,7 @@ async function startServer() {
       console.log('🧠 ====================================');
       console.log('   MENTAL WELLNESS MIRROR - Server');
       console.log('   ====================================');
-      console.log(`   🚀 Server running on port ${PORT}`);
-      console.log(`   🌐 Local: http://localhost:${PORT}`);
-      console.log(`   📊 Health: http://localhost:${PORT}/api/health`);
-      console.log(`   🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`   🚀 Server running on http://localhost:${PORT}`);
       console.log('   ====================================');
       console.log('');
     });
@@ -145,13 +125,11 @@ async function startServer() {
   }
 }
 
-// Handle uncaught exceptions
+// Handle uncaught exceptions and rejections (no changes here)
 process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
   process.exit(1);
 });
-
-// Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);
