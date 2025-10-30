@@ -14,7 +14,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const loginForm = document.getElementById('loginForm');
   const registerForm = document.getElementById('registerForm');
+// DEBUG: Check if dependencies loaded
+console.log('🔍 Auth.js loaded');
+console.log('🔍 authManager available?', typeof window.authManager);
+console.log('🔍 api available?', typeof window.api);
 
+if (!window.authManager) {
+  console.error('❌ auth-manager.js not loaded!');
+}
+if (!window.api) {
+  console.error('❌ api-client.js not loaded!');
+}
+
+// ... rest of your auth.js code
   // ============================================
   // LOGIN FORM
   // ============================================

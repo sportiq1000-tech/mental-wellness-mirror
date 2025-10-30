@@ -101,9 +101,17 @@ const chatLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  // Use user ID as key instead of IP (if authenticated)
-  keyGenerator: (req) => {
-    return req.user?.id?.toString() || req.ip;
+  // FIXED: Use user ID if authenticated, otherwise skip custom key
+  skip: (req) => false,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      error: {
+        code: 'RATE_LIMIT_EXCEEDED',
+        message: 'Too many messages sent, please slow down',
+        details: 'Rate limit: 30 messages per 15 minutes'
+      }
+    });
   }
 });
 
@@ -149,14 +157,9 @@ function createRateLimiter(options) {
   return rateLimit({ ...defaults, ...options });
 }
 
-/**
- * Dynamic rate limiter based on user role
- * Premium users get higher limits
- */
 const dynamicLimiter = (req, res, next) => {
   const userRole = req.user?.role || 'user';
   
-  // Different limits for different roles
   const limits = {
     admin: 1000,
     premium: 200,
@@ -168,7 +171,9 @@ const dynamicLimiter = (req, res, next) => {
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max,
-    keyGenerator: (req) => req.user?.id?.toString() || req.ip,
+    // FIXED: Remove custom keyGenerator, use default IP-based
+    standardHeaders: true,
+    legacyHeaders: false,
     message: {
       success: false,
       error: {

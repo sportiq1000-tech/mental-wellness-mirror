@@ -71,8 +71,13 @@
       </div>
     </div>
   </div>
-
-  <!-- Scripts - CORRECTED PATH -->
-  <script src="../js/auth.js"></script>
+<!-- 1. Auth Manager (Load FIRST) -->
+  <script src="/js/auth-manager.js"></script>
+  
+  <!-- 2. API Client (Load SECOND) -->
+  <script src="/js/api-client.js"></script>
+  
+  <!-- 3. Page-specific script (Load LAST) -->
+  <script src="/js/auth.js"></script>
 </body>
 </html>

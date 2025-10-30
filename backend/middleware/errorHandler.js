@@ -90,7 +90,7 @@ function handleJWTError(err) {
  * Handle validation errors from express-validator
  */
 function handleValidationError(err) {
-  if (err.name === 'ValidationError') {
+  if (err.name === 'ValidationError' && err.errors) {
     const errors = Object.values(err.errors).map(el => el.message);
     return new AppError('Invalid input data', 400, 'VALIDATION_ERROR', errors);
   }
@@ -131,7 +131,10 @@ function errorHandler(err, req, res, next) {
   if (err.name === 'ValidationError') {
     error = handleValidationError(err);
   }
-
+  // Log full error stack in development
+  if (process.env.NODE_ENV !== 'production') {
+    console.error('📚 Full Error Stack:', err.stack);
+  }
   // Send error response
   if (process.env.NODE_ENV === 'production') {
     sendErrorProd(error, req, res);

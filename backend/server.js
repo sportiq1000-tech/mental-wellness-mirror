@@ -32,16 +32,29 @@ const PORT = process.env.PORT || 3000;
 // SECURITY MIDDLEWARE (Apply first)
 // ============================================
 
-// Helmet - Security headers
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+      styleSrc: [
+        "'self'", 
+        "'unsafe-inline'", 
+        "https://cdn.jsdelivr.net",
+        "https://fonts.googleapis.com",
+        "https://cdnjs.cloudflare.com"
+      ],
+      scriptSrc: [
+        "'self'", 
+        "'unsafe-inline'", 
+        "https://cdn.jsdelivr.net"
+      ],
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      fontSrc: [
+        "'self'", 
+        "https://fonts.gstatic.com",
+        "https://cdnjs.cloudflare.com"
+      ],
       objectSrc: ["'none'"],
       upgradeInsecureRequests: []
     }
