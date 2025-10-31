@@ -56,19 +56,19 @@ async function loadDashboardData(days = 30) {
   showLoading();
   try {
     // Fetch all necessary data in parallel
-    const [statsResponse, moodStatsResponse, chatHistoryResponse] = await Promise.all([
+    const [userStatsResponse, moodTrendsResponse, chatHistoryResponse] = await Promise.all([
       window.api.getUserStats(),
-      window.api.getMoodStats(days),
-      window.api.getChatHistory(100, 0) // Fetch recent history for activity
+      window.api.get('/api/moods/trends', { days }),
+      window.api.getChatHistory(100, 0) // Get up to 100 recent entries for activity calculations
     ]);
 
-    // Process data for the dashboard
-    const dashboardData = processApiData(statsResponse, moodStatsResponse, chatHistoryResponse);
+    // Process the data for the dashboard
+    const dashboardData = processApiData(userStatsResponse, moodTrendsResponse, chatHistoryResponse);
     
-    // Render all components with real data
+    // Render all components with the processed data
     renderDashboard(dashboardData);
     
-    console.log('✅ Dashboard loaded successfully with real data');
+    console.log('✅ Dashboard loaded successfully with real data', dashboardData);
 
   } catch (error) {
     console.error('❌ Error loading dashboard:', error);
@@ -81,28 +81,36 @@ async function loadDashboardData(days = 30) {
 // ============================================
 // DATA PROCESSING
 // ============================================
-function processApiData(statsRes, moodRes, chatRes) {
+function processApiData(statsRes, trendRes, chatRes) {
   const userStats = statsRes.data.stats;
-  const moodStats = moodRes.data.overall;
-  const moodTrends = moodRes.data.daily;
-  const chatHistory = chatRes.data.entries;
+  const moodTrends = trendRes.data.trends || [];
+  const chatHistory = chatRes.data.entries || [];
+
+  // Calculate average mood from the trend data
+  const totalScore = moodTrends.reduce((sum, day) => sum + (day.avg_score * day.count), 0);
+  const totalEntriesForAvg = moodTrends.reduce((sum, day) => sum + day.count, 0);
+  const averageMood = totalEntriesForAvg > 0 ? totalScore / totalEntriesForAvg : 0;
+  
+  // Calculate activity distribution
+  const chatCount = userStats.totalEntries || 0;
+  // We don't have a separate "mood log" count, so we'll use chat count for both for now
+  const moodLogCount = chatCount; 
 
   return {
-    totalChats: userStats.totalEntries || 0,
-    avgMood: moodStats.averageScore || 0,
+    totalChats: chatCount,
+    avgMood: averageMood,
     todaysEntries: calculateTodaysEntries(chatHistory),
     avgSessionTime: Math.round(userStats.averageSessionTime) || 15, // Placeholder
-    moodTrend: moodTrends || [],
+    moodTrend: moodTrends,
     activityDistribution: {
-      chat: userStats.totalEntries || 0,
-      mood: moodStats.totalEntries || 0
+      chat: chatCount,
+      mood: moodLogCount 
     },
     weeklyActivity: generateWeeklyActivity(chatHistory),
     recentActivity: formatRecentActivity(chatHistory),
     insights: generateInsights(moodTrends)
   };
 }
-
 // ============================================
 // COMPONENT RENDERING
 // ============================================
@@ -114,6 +122,8 @@ function renderDashboard(data) {
   createActivityHeatmap(data.weeklyActivity);
   populateRecentActivity(data.recentActivity);
   populateInsights(data.insights);
+   // ⭐ ADD THIS CALL
+  createSentimentDistributionChart(data.moodTrend);
 }
 
 function populateMetrics(data) {
@@ -133,9 +143,21 @@ function createMoodTrendChart(trends) {
   if (!ctx) return;
   
   if (window.moodChartInstance) window.moodChartInstance.destroy();
+
+  // ✅ FIX: Define 'trendData' at the very beginning of the function
+  const trendData = trends || [];
   
-  const labels = trends.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-  const scores = trends.map(d => (d.avg_score || 0) * 5);
+  if (trendData.length === 0) {
+    // Clear previous chart and show a message
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.font = "16px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Not enough data for mood trend", ctx.canvas.width / 2, ctx.canvas.height / 2);
+    return;
+  }
+  
+  const labels = trendData.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+  const scores = trendData.map(d => (d.avg_score || 0) * 5);
   
   window.moodChartInstance = new Chart(ctx, {
     type: 'line',
@@ -214,7 +236,96 @@ function createActivityHeatmap(activity) {
     });
   });
 }
+// ⭐ PASTE THE NEW FUNCTION HERE ⭐
+function createSentimentDistributionChart(trends) {
+  const ctx = document.getElementById('sentimentDistributionChart')?.getContext('2d');
+  if (!ctx) return;
+  
+  if (window.sentimentDistChartInstance) window.sentimentDistChartInstance.destroy();
 
+  const trendData = trends || [];
+  if (trendData.length === 0) {
+    ctx.font = "16px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("No sentiment data to display", ctx.canvas.width / 2, ctx.canvas.height / 2);
+    return;
+  }
+
+  const labels = trendData.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+  
+  const positiveData = [], neutralData = [], negativeData = [];
+
+  trendData.forEach(day => {
+    const moods = day.moods ? day.moods.split(',') : [];
+    let pos = 0, neu = 0, neg = 0;
+    moods.forEach(mood => {
+      const lowerMood = mood.trim().toLowerCase();
+      if (['positive', 'happy', 'calm'].includes(lowerMood)) pos++;
+      else if (['neutral'].includes(lowerMood)) neu++;
+      else neg++;
+    });
+    positiveData.push(pos);
+    neutralData.push(neu);
+    negativeData.push(neg);
+  });
+
+  // 2. Create the Chart.js instance
+  window.sentimentDistChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Positive',
+          data: positiveData,
+          backgroundColor: '#4ade80', // Calming Green
+        },
+        {
+          label: 'Neutral',
+          data: neutralData,
+          backgroundColor: '#94a3b8', // Muted Gray
+        },
+        {
+          label: 'Negative',
+          data: negativeData,
+          backgroundColor: '#f87171', // Soft Red
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false // We use the custom legend in the HTML
+        },
+        tooltip: {
+          mode: 'index', // Show all stacks on hover
+          intersect: false,
+        },
+      },
+      scales: {
+        x: {
+          stacked: true, // This creates the stacked effect
+          grid: {
+            display: false
+          }
+        },
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1, // Ensure y-axis shows whole numbers for counts
+          },
+          grid: {
+            color: 'rgba(0,0,0,0.05)'
+          }
+        }
+      }
+    }
+  });
+}
+// END OF NEW FUNCTION
 function populateRecentActivity(activity) {
   const container = document.getElementById('recentActivityList');
   if (!container) return;

@@ -1,29 +1,6 @@
-
-
-/* ============================================ */
-/* TEMPORARY DIAGNOSTIC - REMOVE AFTER FIXING */
-/* ============================================ */
-
-.main-content {
-  background: lightblue !important; /* Should see blue background */
-}
-
-.dashboard-content {
-  background: rgb(254, 254, 254) !important; /* Should see green background */
-  border: 3px solid red !important;
-}
-
-.metrics-grid {
-  background: rgb(255, 255, 255) !important; /* Should see yellow background */
-  border: 3px solid purple !important;
-}
-
-.metric-card {
-  background: rgb(230, 224, 225) !important; /* Cards should be pink */
-  border: 2px solid black !important;
-}/**
- * Dashboard-Specific Styles
- * Mental Wellness Mirror
+/**
+ * Dashboard Styles - V2.0 Redesign
+ * A modern, clean, and calming theme.
  */
 
 /* ============================================ */
@@ -33,7 +10,7 @@
 .dashboard-header {
   background: var(--bg);
   border-bottom: 1px solid var(--card-border);
-  padding: 2rem;
+  padding: 1.5rem 2rem;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -49,16 +26,17 @@
 }
 
 .dashboard-title {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 1.75rem;
+  font-weight: 600;
   color: var(--text);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .dashboard-subtitle {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--text-secondary);
-  margin: 0.5rem 0 0 0;
+  margin-top: 0.25rem;
 }
 
 .header-actions {
@@ -67,14 +45,21 @@
 }
 
 .time-range-selector {
-  padding: 0.625rem 1rem;
+  /* Reuses .form-input styles */
+  appearance: none;
+  padding: 0.625rem 2.5rem 0.625rem 1rem;
   border: 1px solid var(--card-border);
   border-radius: var(--radius-md);
   background: var(--bg);
   color: var(--text);
   font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: border-color var(--transition-fast);
+  transition: all var(--transition-fast);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
 }
 
 .time-range-selector:hover {
@@ -104,74 +89,50 @@
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .metric-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
+  /* Reuses .card styles */
   padding: 1.5rem;
   display: flex;
   gap: 1rem;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  align-items: center;
 }
 
-.metric-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
 
 .metric-icon {
-  font-size: 2.5rem;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--primary-light);
+  font-size: 1.5rem;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
   border-radius: var(--radius-md);
   flex-shrink: 0;
+  color: var(--primary);
+  background: var(--primary-light);
 }
 
 .metric-details {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
 }
 
 .metric-label {
   font-size: 0.875rem;
   color: var(--text-secondary);
-  margin: 0 0 0.5rem 0;
   font-weight: 500;
+  margin: 0 0 0.25rem 0;
 }
 
 .metric-value {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--text);
-  margin: 0 0 0.5rem 0;
-  line-height: 1;
-}
-
-.metric-change {
-  font-size: 0.8rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
+  line-height: 1.2;
   margin: 0;
-}
-
-.metric-change.positive { color: var(--success); }
-.metric-change.negative { color: var(--error); }
-.metric-change.neutral { color: var(--text-secondary); }
-
-.change-icon {
-  font-weight: 700;
 }
 
 /* ============================================ */
@@ -180,16 +141,20 @@
 
 .charts-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: 2fr 1fr; /* Main chart larger */
   gap: 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .chart-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
+  /* Reuses .card styles, but with no hover effect */
+  transform: none;
+  box-shadow: var(--shadow-md);
+}
+
+.chart-card:hover {
+  transform: none;
+  box-shadow: var(--shadow-md);
 }
 
 .chart-card.full-width {
@@ -201,6 +166,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--card-border);
 }
 
 .chart-title {
@@ -212,7 +179,7 @@
 
 .chart-container {
   position: relative;
-  height: 300px;
+  height: 280px;
 }
 
 .chart-legend {
@@ -225,13 +192,13 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
 }
 
 .legend-color {
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   border-radius: 4px;
 }
 
@@ -242,14 +209,14 @@
 .heatmap-container {
   display: grid;
   grid-template-columns: auto repeat(7, 1fr);
-  gap: 4px;
-  padding: 1rem 0;
+  gap: 5px;
+  padding: 0.5rem 0;
 }
 
 .heatmap-label {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  padding: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  padding-right: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -259,7 +226,7 @@
 .heatmap-cell {
   aspect-ratio: 1;
   border-radius: 4px;
-  background: var(--card-bg);
+  background: var(--card-border);
   transition: transform var(--transition-fast);
   cursor: pointer;
   position: relative;
@@ -268,65 +235,59 @@
 .heatmap-cell:hover {
   transform: scale(1.1);
   z-index: 10;
+  outline: 2px solid var(--primary);
 }
 
-.heatmap-cell[data-level="0"] { background: #e8f5e9; }
-.heatmap-cell[data-level="1"] { background: #c8e6c9; }
-.heatmap-cell[data-level="2"] { background: #a5d6a7; }
-.heatmap-cell[data-level="3"] { background: #81c784; }
-.heatmap-cell[data-level="4"] { background: #66bb6a; }
-.heatmap-cell[data-level="5"] { background: #4caf50; }
+/* New calming heatmap colors */
+.heatmap-cell[data-level="0"] { background: #f1f5f9; } /* Lightest gray */
+.heatmap-cell[data-level="1"] { background: #e0e7ff; }
+.heatmap-cell[data-level="2"] { background: #c7d2fe; }
+.heatmap-cell[data-level="3"] { background: #a5b4fc; }
+.heatmap-cell[data-level="4"] { background: #818cf8; }
+.heatmap-cell[data-level="5"] { background: #6366f1; } /* Primary color */
 
 /* ============================================ */
-/* INSIGHTS */
+/* INSIGHTS & RECENT ACTIVITY */
 /* ============================================ */
-
-.insights-section {
-  margin-bottom: 2rem;
-}
 
 .section-title {
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text);
   margin: 0 0 1.5rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--card-border);
 }
 
 .insights-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
+  margin-bottom: 2.5rem;
 }
 
 .insight-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
+  /* Reuses .card styles */
   display: flex;
   gap: 1rem;
-  border-left: 4px solid transparent;
-}
-
-.insight-card.insight-positive {
-  border-left-color: var(--success);
-  background: linear-gradient(to right, #f1f8f4 0%, var(--card-bg) 20%);
-}
-
-.insight-card.insight-neutral {
-  border-left-color: var(--primary);
-  background: linear-gradient(to right, var(--primary-light) 0%, var(--card-bg) 20%);
-}
-
-.insight-card.insight-warning {
-  border-left-color: var(--warning);
-  background: linear-gradient(to right, #fff8f0 0%, var(--card-bg) 20%);
+  align-items: flex-start;
+  padding: 1.25rem;
 }
 
 .insight-icon {
-  font-size: 2rem;
+  font-size: 1.25rem;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
   flex-shrink: 0;
+  color: white;
 }
+
+.insight-card.insight-positive .insight-icon { background: var(--success); }
+.insight-card.insight-neutral .insight-icon { background: var(--primary); }
+.insight-card.insight-warning .insight-icon { background: var(--warning); }
 
 .insight-content {
   flex: 1;
@@ -342,17 +303,13 @@
 .insight-description {
   font-size: 0.9rem;
   color: var(--text-secondary);
-  margin: 0;
   line-height: 1.5;
+  margin: 0;
 }
 
 /* ============================================ */
 /* RECENT ACTIVITY */
 /* ============================================ */
-
-.recent-activity-section {
-  margin-bottom: 2rem;
-}
 
 .activity-list {
   background: var(--card-bg);
@@ -375,7 +332,7 @@
 }
 
 .activity-item:hover {
-  background: var(--primary-light);
+  background: var(--bg);
 }
 
 .activity-icon {
@@ -383,10 +340,10 @@
   height: 40px;
   border-radius: 50%;
   background: var(--primary-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
   flex-shrink: 0;
 }
 
@@ -396,7 +353,7 @@
 }
 
 .activity-title {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text);
   margin: 0 0 0.25rem 0;
@@ -406,6 +363,9 @@
   font-size: 0.85rem;
   color: var(--text-secondary);
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .activity-time {
@@ -418,34 +378,28 @@
 /* RESPONSIVE DESIGN */
 /* ============================================ */
 
+@media (max-width: 960px) {
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .dashboard-header {
     padding: 1rem;
     margin-top: 60px;
   }
-
   .header-content {
     flex-direction: column;
     align-items: flex-start;
   }
-
   .dashboard-title {
     font-size: 1.5rem;
   }
-
   .dashboard-content {
     padding: 1rem;
   }
-
-  .metrics-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .charts-row {
-    grid-template-columns: 1fr;
-  }
-
-  .insights-grid {
+  .metrics-grid, .insights-grid {
     grid-template-columns: 1fr;
   }
 }
