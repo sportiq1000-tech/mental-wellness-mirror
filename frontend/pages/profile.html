@@ -26,10 +26,9 @@
       </a>
       <a href="dashboard.html" class="nav-link">
         <span class="icon">📊</span> Dashboard
-      </a>
-      <a href="#" class="nav-link" onclick="alert('History coming soon!')">
-        <span class="icon">📜</span> History
-      </a>
+     <a href="history.html" class="nav-link">
+  <span class="icon">📜</span> History
+</a>
     </nav>
 
     <div class="sidebar-section">
@@ -244,7 +243,20 @@
                 </label>
               </div>
             </div>
+!-- ⭐ ADD THIS NEW SECTION ⭐ -->
+            <div class="preference-divider"></div>
 
+            <div class="preference-item">
+              <div class="preference-info">
+                <h3 class="preference-title">🔊 Voice Gender</h3>
+                <p class="preference-description">Choose the preferred voice for AI responses</p>
+              </div>
+              <select class="form-input" id="voiceGenderSelect" style="max-width: 200px;">
+                <option value="female" selected>Female</option>
+                <option value="male">Male</option>
+              </select>
+            </div>
+            <!-- END OF NEW SECTION -->
             <div class="preference-divider"></div>
 
             <div class="preference-item">

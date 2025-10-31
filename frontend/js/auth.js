@@ -5,12 +5,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   
-  // Check if already logged in
-  if (window.authManager && window.authManager.isAuthenticated()) {
-    console.log('User already authenticated, redirecting...');
-    window.location.href = '/pages/chat.html';
-    return;
-  }
+  
 
   const loginForm = document.getElementById('loginForm');
   const registerForm = document.getElementById('registerForm');

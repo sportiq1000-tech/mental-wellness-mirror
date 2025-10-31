@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>History - Mental Wellness Mirror</title>
+  
+  <!-- Reusing shared styles -->
+  <link rel="stylesheet" href="../css/shared.css">
+  <!-- New page-specific styles -->
+  <link rel="stylesheet" href="../css/history.css">
+  
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="has-sidebar">
+
+  <!-- ============================================ -->
+  <!-- SIDEBAR (Reused from other pages) -->
+  <!-- ============================================ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2 class="sidebar-brand">🧠 Wellness Mirror</h2>
+      <button class="btn btn-primary btn-new-chat" onclick="location.href='chat.html'">
+        <span class="icon">💬</span> New Chat
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="chat.html" class="nav-link">
+        <span class="icon">💬</span> Chat
+      </a>
+      <a href="dashboard.html" class="nav-link">
+        <span class="icon">📊</span> Dashboard
+      </a>
+      <!-- Active Link for History Page -->
+      <a href="history.html" class="nav-link active">
+        <span class="icon">📜</span> History
+      </a>
+    </nav>
+
+    <div class="sidebar-section">
+      <h3 class="sidebar-section-title">Recent Chats</h3>
+      <div class="chat-history-list" id="recentChatsSidebar">
+        <!-- Will be populated by JS if needed -->
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-profile" onclick="location.href='profile.html'">
+        <div class="user-avatar">👤</div>
+        <div class="user-info">
+          <div class="user-name">Loading...</div>
+          <div class="user-email">...</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================ -->
+  <!-- MAIN HISTORY CONTENT -->
+  <!-- ============================================ -->
+  <main class="main-content">
+    <button class="btn-toggle-sidebar" id="toggleSidebar" aria-label="Toggle Sidebar">☰</button>
+
+    <div class="history-container">
+      
+      <!-- History Header -->
+      <header class="history-header">
+        <div>
+          <h1 class="history-title">Chat History</h1>
+          <p class="history-subtitle">Review and manage your past conversations.</p>
+        </div>
+        <div class="search-container">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search conversations...">
+        </div>
+      </header>
+
+      <!-- History List -->
+      <div class="history-list-wrapper">
+        <ul class="history-list" id="historyList">
+          <!-- History items will be populated by JS -->
+        </ul>
+        
+        <!-- Loading Spinner -->
+        <div class="loading-spinner-container" id="loadingSpinner">
+          <div class="spinner"></div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState">
+          <div class="empty-state-icon">📜</div>
+          <h3>No History Found</h3>
+          <p>Your past conversations will appear here.</p>
+          <button class="btn btn-primary" onclick="location.href='chat.html'">Start a New Chat</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ============================================ -->
+  <!-- JAVASCRIPT -->
+  <!-- ============================================ -->
+  <script src="/js/auth-manager.js"></script>
+  <script src="/js/api-client.js"></script>
+  <script src="/js/history.js"></script>
+</body>
+</html>

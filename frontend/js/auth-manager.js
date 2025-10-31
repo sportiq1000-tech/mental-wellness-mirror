@@ -2,7 +2,10 @@
  * Authentication Manager
  * Handles JWT tokens, auto-refresh, and auth state
  */
-
+function isAuthPage() {
+const p = window.location.pathname;
+return p.endsWith('/pages/login.html') || p.endsWith('/pages/register.html');
+}
 class AuthManager {
   constructor() {
     this.accessToken = null;
@@ -13,7 +16,13 @@ class AuthManager {
     // Load tokens from storage on init
     this.loadFromStorage();
   }
-
+/**
+   * Helper to check if on login/register page
+   */
+  isAuthPage() {
+    const p = window.location.pathname;
+    return p.endsWith('/pages/login.html') || p.endsWith('/pages/register.html');
+  }
   /**
    * Check if user is authenticated
    */
@@ -90,7 +99,7 @@ class AuthManager {
   /**
    * Load tokens from localStorage
    */
-  loadFromStorage() {
+   loadFromStorage() {
     try {
       this.accessToken = localStorage.getItem('accessToken');
       this.refreshToken = localStorage.getItem('refreshToken');
@@ -100,13 +109,21 @@ class AuthManager {
         this.user = JSON.parse(userStr);
       }
       
-      // Validate and refresh if needed
       if (this.accessToken) {
         if (this.isTokenExpired(this.accessToken)) {
-          console.log('⚠️ Access token expired, attempting refresh...');
-          this.refreshAccessToken();
+          // On auth pages, just clear stale tokens
+          if (this.isAuthPage()) {
+            console.log('Stale tokens found on auth page, clearing...');
+            this.clearAuth();
+          } else {
+            console.log('⚠️ Access token expired, attempting refresh...');
+            this.refreshAccessToken();
+          }
         } else {
-          this.scheduleTokenRefresh();
+          // Only schedule refresh outside auth pages
+          if (!this.isAuthPage()) {
+            this.scheduleTokenRefresh();
+          }
         }
       }
     } catch (error) {
@@ -114,7 +131,6 @@ class AuthManager {
       this.clearAuth();
     }
   }
-
   /**
    * Decode JWT token (without verification)
    */
@@ -180,7 +196,10 @@ class AuthManager {
     if (!this.refreshToken) {
       console.log('⚠️ No refresh token available');
       this.clearAuth();
-      window.location.href = '/pages/login.html';
+      // Don't redirect if we are on an auth page
+      if (!this.isAuthPage()) {
+        window.location.href = '/pages/login.html';
+      }
       return false;
     }
 
@@ -218,7 +237,10 @@ class AuthManager {
     } catch (error) {
       console.error('❌ Token refresh failed:', error);
       this.clearAuth();
-      window.location.href = '/pages/login.html';
+      // Don't redirect if we are on an auth page
+      if (!this.isAuthPage()) {
+        window.location.href = '/pages/login.html';
+      }
       return false;
     }
   }

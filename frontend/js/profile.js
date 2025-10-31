@@ -4,7 +4,7 @@
  */
 
 // ============================================
-// AUTHENTICATION CHECK (ADD AT TOP)
+// AUTHENTICATION CHECK (MUST BE FIRST)
 // ============================================
 if (!window.authManager || !window.authManager.requireAuth()) {
   throw new Error('Authentication required');
@@ -192,6 +192,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
+  
+  // ============================================
+  // ⭐ VOICE GENDER PREFERENCE (NEW) ⭐
+  // ============================================
+  const voiceGenderSelect = document.getElementById('voiceGenderSelect');
+  if (voiceGenderSelect) {
+    // Load saved preference
+    const savedGender = localStorage.getItem('voiceGender') || 'female';
+    voiceGenderSelect.value = savedGender;
+
+    // Save on change
+    voiceGenderSelect.addEventListener('change', (e) => {
+      const gender = e.target.value;
+      localStorage.setItem('voiceGender', gender);
+      showNotification(`Voice preference set to ${gender}`, 'success');
+    });
+  }
 
   // ============================================
   // LOAD SESSIONS
@@ -205,7 +222,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ============================================
-// UTILITY FUNCTIONS
+// UTILITY FUNCTIONS (Global Scope)
 // ============================================
 
 function calculatePasswordStrength(password) {
@@ -301,3 +318,30 @@ function confirmClearHistory() {
 // Make functions global for onclick handlers
 window.confirmDeleteAccount = confirmDeleteAccount;
 window.confirmClearHistory = confirmClearHistory;
+
+// Add animations for notification
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideIn {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideOut {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+  }
+`;
+document.head.appendChild(style);
