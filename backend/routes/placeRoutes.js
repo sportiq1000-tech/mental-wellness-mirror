@@ -1,12 +1,10 @@
-/**
- * Places Routes - Wellness location endpoints
- */
-
 const express = require('express');
 const router = express.Router();
-const { getNearbyWellnessPlaces } = require('../controllers/placeController');
+const { findNearbyPlaces } = require('../controllers/placeController');
+const { authenticateJWT } = require('../middleware/auth');
 
-// GET /api/places - Get nearby wellness places
-router.get('/', getNearbyWellnessPlaces);
+router.use(authenticateJWT);
+
+router.get('/nearby', findNearbyPlaces);
 
 module.exports = router;

@@ -11,11 +11,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
-  <!-- Styles - CORRECTED PATHS -->
+  <!-- Styles -->
   <link rel="stylesheet" href="../css/shared.css">
   <link rel="stylesheet" href="../css/chat.css">
 </head>
-<body>
+<body class="has-sidebar">
   
   <div class="chat-layout">
     
@@ -23,7 +23,6 @@
     <aside class="sidebar" id="sidebar">
       
       <div class="sidebar-header">
-        <!-- CORRECTED PATH -->
         <a href="../index.html" class="sidebar-brand">
           <i class="fas fa-brain"></i>
           <span>Wellness Mirror</span>
@@ -33,7 +32,7 @@
         </button>
       </div>
       
-      <button class="new-chat-btn">
+      <button class="new-chat-btn" onclick="location.href='chat.html'">
         <i class="fas fa-plus"></i>
         <span>New Chat</span>
       </button>
@@ -53,23 +52,28 @@
             <i class="fas fa-history"></i>
             <span>History</span>
           </a>
+          <!-- ⭐ NEW PLACES LINK ADDED HERE ⭐ -->
+          <a href="places.html" class="nav-item">
+            <i class="fas fa-map-marked-alt"></i>
+            <span>Places</span>
+          </a>
         </div>
         
-   <!-- UPDATED -->
-<div class="nav-section" id="recentChatsNavSection">
-  <div class="nav-section-title">Recent Chats</div>
-  <!-- Links will be populated by JS -->
-</div>
+        <div class="nav-section" id="recentChatsNavSection">
+          <div class="nav-section-title">Recent Chats</div>
+          <!-- Links will be populated by sidebar.js -->
+        </div>
+      </nav>
       
       <div class="sidebar-footer">
-        <a href="profile.html" class="user-profile">
-          <div class="user-avatar">DH</div>
+        <!-- This section is now populated by sidebar.js -->
+        <div class="user-profile" onclick="location.href='profile.html'">
+          <div class="user-avatar">👤</div>
           <div class="user-info">
-            <div class="user-name">Dhara</div>
-            <div class="user-status">My Profile</div>
+            <div class="user-name">Loading...</div>
+            <div class="user-email">...</div>
           </div>
-          <i class="fas fa-chevron-right"></i>
-        </a>
+        </div>
       </div>
       
     </aside>
@@ -153,7 +157,7 @@
         </button>
       </div>
     </div>
-    <div class="char-counter">0 / 5000</div>
+    <div class="char-counter" id="charCounter">0 / 5000</div>
   </div>
 </div>
       
@@ -163,13 +167,12 @@
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     
   </div>
-  <!-- Auth & API Scripts (Load first) -->
+  
+  <!-- Scripts -->
   <script src="/js/auth-manager.js"></script>
   <script src="/js/api-client.js"></script>
-   <script src="/js/sidebar.js"></script>
-  <!-- Scripts - CORRECTED PATH -->
+  <script src="/js/sidebar.js"></script>
   <script src="/js/chat.js"></script>
-
   
 </body>
 </html>

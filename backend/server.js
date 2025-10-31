@@ -34,32 +34,30 @@ const PORT = process.env.PORT || 3000;
 
 app.use(helmet({
   contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: [
-        "'self'", 
-        "'unsafe-inline'", 
-        "https://cdn.jsdelivr.net",
-        "https://fonts.googleapis.com",
-        "https://cdnjs.cloudflare.com"
-      ],
-      scriptSrc: [
-        "'self'", 
-        "'unsafe-inline'", 
-        "https://cdn.jsdelivr.net"
-      ],
-      imgSrc: ["'self'", "data:", "https:"],
-     // NEW
-connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
-      fontSrc: [
-        "'self'", 
-        "https://fonts.gstatic.com",
-        "https://cdnjs.cloudflare.com"
-      ],
-      objectSrc: ["'none'"],
-      upgradeInsecureRequests: []
-    }
+  directives: {
+    defaultSrc: ["'self'"],
+    styleSrc: [
+      "'self'", 
+      "'unsafe-inline'", // Allows inline styles
+      "https://cdn.jsdelivr.net",
+      "https://fonts.googleapis.com",
+      "https://cdnjs.cloudflare.com",
+      "https://unpkg.com"
+    ],
+    scriptSrcElem: ["'self'", "https://cdn.jsdelivr.net", "https://unpkg.com"],
+    styleSrcElem: ["'self'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://unpkg.com"],
+    imgSrc: ["'self'", "data:", "https:", "*.tile.openstreetmap.org"],
+    connectSrc: [
+      "'self'", 
+      "https://cdn.jsdelivr.net",
+      "https://unpkg.com", // For .map files
+      "https://api.foursquare.com" // ⭐ ADD THIS to allow API calls
+    ],
+    fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+    objectSrc: ["'none'"],
+    upgradeInsecureRequests: [],
   },
+},
   crossOriginEmbedderPolicy: false
 }));
 
