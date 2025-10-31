@@ -1,10 +1,6 @@
 /**
  * Chat Interface - Mental Wellness Mirror
- * UPDATED: Requires authentication
- */
-/**
- * Chat Interface - Mental Wellness Mirror
- * UPDATED: Requires authentication and correct structure
+ * UPDATED: Authentication, conversation history loading, and continue chat
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -16,14 +12,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // AUTHENTICATION CHECK
   // ============================================
   if (!window.authManager || !window.authManager.requireAuth()) {
-    // This will redirect to login if not authenticated
-    return;
+    return; // This will redirect to login if not authenticated
   }
   
   console.log('✅ Chat.js loaded successfully');
   
   // ============================================
-  // 1. ELEMENT REFERENCES (DEFINE EVERYTHING FIRST)
+  // 1. ELEMENT REFERENCES
   // ============================================
   const sidebar = document.getElementById('sidebar');
   const sidebarOpenBtn = document.getElementById('sidebarOpen');
@@ -36,6 +31,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const charCounter = document.getElementById('charCounter');
   const suggestionCards = document.querySelectorAll('.suggestion-card');
 
+  // ============================================
+  // 2. STATE MANAGEMENT
+  // ============================================
+  let activeConversationId = null;
+  let currentAudio = null;
+  let currentlyPlayingButton = null;
+
   // Debug: Check if elements exist
   console.log('Elements found:', {
     chatInput: !!chatInput,
@@ -44,22 +46,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // ============================================
-  // 2. LOAD USER INFO
+  // 3. INITIALIZATION
   // ============================================
-  const currentUser = window.authManager.getCurrentUser();
-  if (currentUser) {
-    console.log('✅ Chat loaded for user:', currentUser.email);
-    
-    // Update user info in sidebar
-    const userName = document.querySelector('.user-name');
-    const userEmail = document.querySelector('.user-email');
-    
-    if (userName) userName.textContent = currentUser.fullName || currentUser.username || 'User';
-    if (userEmail) userEmail.textContent = currentUser.email;
+
+
+  
+  // Check for an entry ID in the URL to load a past conversation
+  const urlParams = new URLSearchParams(window.location.search);
+  const entryId = urlParams.get('entry');
+  if (entryId) {
+    activeConversationId = parseInt(entryId);
+    loadConversationHistory(activeConversationId);
   }
   
   // ============================================
-  // 3. DEFINE FUNCTIONS
+  // 4. FUNCTION DEFINITIONS
   // ============================================
 
   // Escape HTML to prevent XSS
@@ -72,10 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Add message to UI
   function addMessage(text, author, sentimentLabel = null, sentimentEmoji = null) {
     if (!chatBody) return;
-    
-    if (chatEmptyState) {
-      chatEmptyState.style.display = 'none';
-    }
+    if (chatEmptyState) chatEmptyState.style.display = 'none';
 
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${author}`;
@@ -114,16 +112,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Send message to backend
   async function sendChatMessage() {
     const messageText = chatInput.value.trim();
-    if (!messageText) return;
-    if (messageText.length > 5000) {
-      alert('Message is too long. Please keep it under 5000 characters.');
+    if (!messageText || messageText.length > 5000) {
+      alert(messageText ? 'Message is too long.' : 'Message cannot be empty.');
       return;
     }
 
-    console.log('📤 Sending message:', messageText);
-
     addMessage(messageText, 'user');
-
     chatInput.value = '';
     chatInput.style.height = 'auto';
     if (charCounter) charCounter.textContent = '0 / 5000';
@@ -132,34 +126,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     const typingIndicator = showTypingIndicator();
 
     try {
-      const data = await window.api.sendChatMessage(messageText, true);
-
+      // If we are in an existing conversation, includeContext will be true
+      const data = await window.api.sendChatMessage(messageText, !!activeConversationId);
       if (typingIndicator) typingIndicator.remove();
 
       if (data.success && data.data) {
         addMessage(data.data.aiResponse, 'ai', data.data.sentiment?.label, data.data.sentiment?.emoji);
-        console.log('📊 Stats:', data.data.stats);
-        console.log('🎭 Sentiment:', data.data.sentiment);
-        console.log('🔧 Source:', data.data.source);
+        activeConversationId = data.data.entryId; // Continue the thread
       } else {
-        throw new Error('Invalid response format from server');
+        throw new Error('Invalid response');
       }
     } catch (error) {
       console.error('❌ Error sending message:', error);
       if (typingIndicator) typingIndicator.remove();
-
-      let errorMessage = "I'm having trouble connecting right now. ";
-      if (error.message?.includes('TEXT_TOO_SHORT')) {
-        errorMessage = "Please write a bit more (at least 10 characters).";
-      } else if (error.message?.includes('TEXT_TOO_LONG')) {
-        errorMessage = "Your message is too long. Please keep it under 5000 characters.";
-      } else if (error.statusCode === 401) {
-        errorMessage = "Your session has expired. Please log in again.";
-        setTimeout(() => window.location.href = '/pages/login.html', 2000);
-      } else {
-        errorMessage += "Please try again.";
-      }
-      addMessage(errorMessage, 'ai');
+      addMessage("I'm having trouble connecting right now. Please try again.", 'ai');
     }
   }
 
@@ -179,31 +159,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Text-to-speech
-  // ============================================
-  // TEXT-TO-SPEECH FUNCTION (UPDATED)
-  // ============================================
-  let currentAudio = null; // Variable to hold the current audio object
-  let currentlyPlayingButton = null;
-
   async function speakMessage(text, button) {
     if (!text) return;
 
     const playIcon = '<i class="fas fa-volume-up"></i>';
     const pauseIcon = '<i class="fas fa-pause"></i>';
 
-    // If clicking the same button that is currently playing, pause/resume
     if (currentlyPlayingButton === button && currentAudio) {
-      if (currentAudio.paused) {
-        currentAudio.play();
-        button.innerHTML = pauseIcon;
-      } else {
-        currentAudio.pause();
-        button.innerHTML = playIcon;
-      }
+      if (currentAudio.paused) currentAudio.play(), button.innerHTML = pauseIcon;
+      else currentAudio.pause(), button.innerHTML = playIcon;
       return;
     }
 
-    // If another audio is playing, stop it
     if (currentAudio) {
       currentAudio.pause();
       if (currentlyPlayingButton) {
@@ -213,82 +180,108 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
 
-    // Set the new button and audio
     currentlyPlayingButton = button;
 
     try {
-      // Show loading/playing state on the button
       button.innerHTML = pauseIcon;
       button.style.color = 'var(--primary)';
       button.disabled = true;
 
-      // Get gender preference from localStorage
       const preferredGender = localStorage.getItem('voiceGender') || 'female';
-      console.log(`🎤 Generating voice with gender: ${preferredGender}`);
-
-      // Use APIClient to call your authenticated TTS endpoint
       const response = await window.api.generateVoice(text, 'en', false, preferredGender);
-      
-      button.disabled = false; // Enable button once audio is ready to play
+      button.disabled = false;
 
       if (response.success && response.data.audioUrl) {
         currentAudio = new Audio(response.data.audioUrl);
         currentAudio.play();
-        
         currentAudio.onended = () => {
-          // Reset button state when audio finishes
           button.innerHTML = playIcon;
           button.style.color = '';
           currentAudio = null;
           currentlyPlayingButton = null;
         };
-        
         currentAudio.onerror = () => {
           console.error('Error playing TTS audio.');
           button.innerHTML = playIcon;
-          button.style.color = '';
-          currentAudio = null;
-          currentlyPlayingButton = null;
         };
-        
       } else {
         throw new Error('Failed to get audio URL');
       }
-      
     } catch (error) {
       console.error('Error generating or playing voice:', error);
-      alert('Could not play audio. Please try again.');
-      
-      // Reset button state on error
+      alert('Could not play audio.');
       button.innerHTML = playIcon;
       button.style.color = '';
-      currentAudio = null;
-      currentlyPlayingButton = null;
+    }
+  }
+
+  // ⭐ NEW FUNCTION to load history
+  async function loadConversationHistory(targetEntryId) {
+    if (chatEmptyState) chatEmptyState.style.display = 'none';
+    chatBody.innerHTML = '<div class="spinner" style="margin: auto;"></div>';
+    chatInput.disabled = true;
+
+    try {
+      let allEntries = [];
+      let tempOffset = 0;
+      let keepFetching = true;
+      let targetEntryIndex = -1;
+
+      while (keepFetching) {
+        const response = await window.api.getChatHistory(100, tempOffset);
+        if (response.success && response.data.entries.length > 0) {
+          const entries = response.data.entries;
+          allEntries.push(...entries);
+          
+          if (targetEntryIndex === -1) {
+            const foundIndex = entries.findIndex(e => e.id === targetEntryId);
+            if (foundIndex !== -1) {
+              targetEntryIndex = tempOffset + foundIndex;
+            }
+          }
+          
+          tempOffset += 100;
+          keepFetching = response.data.pagination.hasMore;
+        } else {
+          keepFetching = false;
+        }
+      }
+      
+      chatBody.innerHTML = '';
+
+      if (targetEntryIndex !== -1) {
+        // Since API returns newest first, slice from the target entry onwards, then reverse
+        const conversationThread = allEntries.slice(targetEntryIndex).reverse();
+        
+        conversationThread.forEach(entry => {
+          addMessage(entry.user_text, 'user');
+          addMessage(entry.ai_response, 'ai', entry.sentiment_label);
+        });
+      } else {
+        addMessage('Conversation not found.', 'ai');
+      }
+    } catch (error) {
+      console.error('Failed to load conversation history:', error);
+      addMessage('Failed to load conversation.', 'ai');
+    } finally {
+      chatInput.disabled = false;
+      chatInput.focus();
     }
   }
 
   // ============================================
-  // 4. ATTACH EVENT LISTENERS
+  // 5. ATTACH EVENT LISTENERS
   // ============================================
 
   // Sidebar
   if (sidebarOpenBtn) {
-    sidebarOpenBtn.addEventListener('click', () => {
-      sidebar.classList.add('open');
-      if (sidebarOverlay) sidebarOverlay.classList.add('active');
-    });
+    sidebarOpenBtn.addEventListener('click', () => sidebar.classList.add('open'));
   }
   if (sidebarCloseBtn) {
-    sidebarCloseBtn.addEventListener('click', () => {
-      sidebar.classList.remove('open');
-      if (sidebarOverlay) sidebarOverlay.classList.remove('active');
-    });
+    sidebarCloseBtn.addEventListener('click', () => sidebar.classList.remove('open'));
   }
   if (sidebarOverlay) {
-    sidebarOverlay.addEventListener('click', () => {
-      sidebar.classList.remove('open');
-      sidebarOverlay.classList.remove('active');
-    });
+    sidebarOverlay.addEventListener('click', () => sidebar.classList.remove('open'));
   }
 
   // Textarea
@@ -299,7 +292,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (charCounter) {
         const length = chatInput.value.length;
         charCounter.textContent = `${length} / 5000`;
-        charCounter.style.color = length > 5000 ? 'var(--error)' : (length > 4500 ? 'var(--warning)' : 'var(--text-muted)');
+        charCounter.style.color = length > 5000 ? 'var(--error)' : 'var(--text-muted)';
       }
       if (sendBtn) {
         sendBtn.disabled = chatInput.value.trim().length === 0;

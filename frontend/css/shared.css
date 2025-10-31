@@ -511,6 +511,16 @@ body.has-sidebar {
 }
 
 /* Sidebar Section (for chat history, etc.) */
+/* ============================================
+   SIDEBAR - Recent Chats Placeholder
+   ============================================ */
+
+.no-recent-chats {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 0.5rem 1rem;
+  text-align: center;
+}
 .sidebar-section {
   flex: 1;
   padding: 1rem;

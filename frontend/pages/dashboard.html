@@ -5,64 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - Mental Wellness Mirror</title>
   
- <link rel="stylesheet" href="/css/shared.css">
-<link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/shared.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
   
-  <!-- Chart.js for visualizations -->
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body class="has-sidebar">
   <!-- ============================================ -->
-  <!-- SIDEBAR NAVIGATION (Same as chat.html) -->
+  <!-- SIDEBAR -->
   <!-- ============================================ -->
   <aside class="sidebar" id="sidebar">
-    <!-- Sidebar Header -->
     <div class="sidebar-header">
       <h2 class="sidebar-brand">🧠 Wellness Mirror</h2>
       <button class="btn btn-primary btn-new-chat" onclick="location.href='chat.html'">
-        <span class="icon">💬</span> New Chat
+        <i class="fas fa-plus"></i> New Chat
       </button>
     </div>
-
-    <!-- Sidebar Navigation -->
     <nav class="sidebar-nav">
-      <a href="chat.html" class="nav-link">
-        <span class="icon">💬</span> Chat
-      </a>
-      <a href="dashboard.html" class="nav-link active">
-        <span class="icon">📊</span> Dashboard
-        </a>
-      <a href="history.html" class="nav-link">
-         <span class="icon">📜</span> History
-      </a>
+      <a href="chat.html" class="nav-link"><i class="fas fa-comments"></i> Chat</a>
+      <a href="dashboard.html" class="nav-link active"><i class="fas fa-chart-line"></i> Dashboard</a>
+      <a href="history.html" class="nav-link"><i class="fas fa-history"></i> History</a>
     </nav>
-
-    <!-- Chat History Section -->
-    <div class="sidebar-section">
-      <h3 class="sidebar-section-title">Recent Chats</h3>
-      <div class="chat-history-list" id="chatHistoryList">
-        <a href="#" class="chat-history-item">
-          <span class="chat-title">Feeling anxious today</span>
-          <span class="chat-date">2 hours ago</span>
-        </a>
-        <a href="#" class="chat-history-item">
-          <span class="chat-title">Morning reflection</span>
-          <span class="chat-date">Yesterday</span>
-        </a>
-        <a href="#" class="chat-history-item">
-          <span class="chat-title">Work stress discussion</span>
-          <span class="chat-date">3 days ago</span>
-        </a>
-      </div>
+   <!-- Chat History Section -->
+<div class="sidebar-section">
+  <h3 class="sidebar-section-title">Recent Chats</h3>
+  <div class="chat-history-list" id="recentChatsSidebar"></div> <!-- ✅ New ID, empty -->
+</div>
     </div>
-
-    <!-- User Profile Footer -->
     <div class="sidebar-footer">
       <div class="user-profile" onclick="location.href='profile.html'">
         <div class="user-avatar">👤</div>
         <div class="user-info">
-          <div class="user-name">John Doe</div>
-          <div class="user-email">john@example.com</div>
+          <div class="user-name">Loading...</div>
+          <div class="user-email">...</div>
         </div>
       </div>
     </div>
@@ -72,12 +51,10 @@
   <!-- MAIN DASHBOARD CONTENT -->
   <!-- ============================================ -->
   <main class="main-content">
-    <!-- Toggle Sidebar Button (Mobile) -->
     <button class="btn-toggle-sidebar" id="toggleSidebar" aria-label="Toggle Sidebar">
-      ☰
+      <i class="fas fa-bars"></i>
     </button>
 
-    <!-- Dashboard Header -->
     <header class="dashboard-header">
       <div class="header-content">
         <div>
@@ -95,81 +72,53 @@
       </div>
     </header>
 
-    <!-- Dashboard Content -->
     <div class="dashboard-content">
       
-      <!-- ============================================ -->
-      <!-- KEY METRICS CARDS -->
-      <!-- ============================================ -->
-      <section class="metrics-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;">
+      <!-- Key Metrics -->
+      <section class="metrics-grid">
         <div class="metric-card">
-          <div class="metric-icon">💬</div>
+          <div class="metric-icon"><i class="fas fa-comments"></i></div>
           <div class="metric-details">
             <p class="metric-label">Total Conversations</p>
             <h3 class="metric-value" id="totalChats">--</h3>
-            <p class="metric-change positive">
-              <span class="change-icon">↑</span>
-              <span id="chatsChange">--</span> from last period
-            </p>
           </div>
         </div>
-
         <div class="metric-card">
-          <div class="metric-icon">😊</div>
+          <div class="metric-icon"><i class="fas fa-smile"></i></div>
           <div class="metric-details">
             <p class="metric-label">Average Mood</p>
             <h3 class="metric-value" id="avgMood">--</h3>
-            <p class="metric-change neutral">
-              <span class="change-icon">→</span>
-              <span id="moodChange">--</span>
-            </p>
           </div>
         </div>
-
         <div class="metric-card">
-          <div class="metric-icon">🔥</div>
+          <div class="metric-icon"><i class="fas fa-fire"></i></div>
           <div class="metric-details">
-            <p class="metric-label">Current Streak</p>
+            <p class="metric-label">Today's Entries</p>
             <h3 class="metric-value" id="currentStreak">--</h3>
-            <p class="metric-change positive">
-              <span class="change-icon">↑</span>
-              <span id="streakInfo">--</span>
-            </p>
           </div>
         </div>
-
         <div class="metric-card">
-          <div class="metric-icon">⏱️</div>
+          <div class="metric-icon"><i class="fas fa-clock"></i></div>
           <div class="metric-details">
             <p class="metric-label">Avg. Session Time</p>
             <h3 class="metric-value" id="avgSession">--</h3>
-            <p class="metric-change neutral">
-              <span id="sessionChange">--</span>
-            </p>
           </div>
         </div>
       </section>
 
-      <!-- ============================================ -->
-      <!-- CHARTS ROW 1 -->
-      <!-- ============================================ -->
+      <!-- Charts Row 1 -->
       <section class="charts-row">
-        <!-- Mood Trend Chart -->
         <div class="chart-card">
           <div class="chart-header">
             <h3 class="chart-title">Mood Trend</h3>
-            <button class="btn btn-ghost btn-sm">Export</button>
           </div>
           <div class="chart-container">
             <canvas id="moodTrendChart"></canvas>
           </div>
         </div>
-
-        <!-- Activity Distribution -->
         <div class="chart-card">
           <div class="chart-header">
             <h3 class="chart-title">Activity Distribution</h3>
-            <button class="btn btn-ghost btn-sm">Details</button>
           </div>
           <div class="chart-container">
             <canvas id="activityChart"></canvas>
@@ -177,91 +126,41 @@
         </div>
       </section>
 
-      <!-- ============================================ -->
-      <!-- CHARTS ROW 2 -->
-      <!-- ============================================ -->
+      <!-- Charts Row 2 -->
       <section class="charts-row">
-        <!-- Weekly Activity Heatmap -->
         <div class="chart-card full-width">
           <div class="chart-header">
             <h3 class="chart-title">Weekly Activity Pattern</h3>
             <div class="chart-legend">
-              <span class="legend-item">
-                <span class="legend-color" style="background: #e8f5e9"></span>
-                Low
-              </span>
-              <span class="legend-item">
-                <span class="legend-color" style="background: #81c784"></span>
-                Medium
-              </span>
-              <span class="legend-item">
-                <span class="legend-color" style="background: #4caf50"></span>
-                High
-              </span>
+              <span class="legend-item"><span class="legend-color" style="background: #eef2ff"></span> Low</span>
+              <span class="legend-item"><span class="legend-color" style="background: #a5b4fc"></span> Med</span>
+              <span class="legend-item"><span class="legend-color" style="background: #6366f1"></span> High</span>
             </div>
           </div>
-          <div class="heatmap-container" id="activityHeatmap">
-            <!-- Generated by JS -->
-          </div>
+          <div class="heatmap-container" id="activityHeatmap"></div>
         </div>
       </section>
 
-      <!-- ============================================ -->
-      <!-- INSIGHTS & RECOMMENDATIONS -->
-      <!-- ============================================ -->
-      <section class="insights-section">
-        <h2 class="section-title">Insights & Recommendations</h2>
-        
-        <div class="insights-grid">
-          <div class="insight-card insight-positive">
-            <div class="insight-icon">✨</div>
-            <div class="insight-content">
-              <h4 class="insight-title">Great Progress!</h4>
-              <p class="insight-description">
-                You've maintained a 7-day streak. Your consistency is building a healthy habit.
-              </p>
-            </div>
-          </div>
-
-          <div class="insight-card insight-neutral">
-            <div class="insight-icon">💡</div>
-            <div class="insight-content">
-              <h4 class="insight-title">Peak Activity Time</h4>
-              <p class="insight-description">
-                You're most active in the evenings (6-9 PM). Consider morning journaling too.
-              </p>
-            </div>
-          </div>
-
-          <div class="insight-card insight-warning">
-            <div class="insight-icon">⚠️</div>
-            <div class="insight-content">
-              <h4 class="insight-title">Mood Dip Detected</h4>
-              <p class="insight-description">
-                Your mood scores were lower on Mondays. Consider extra self-care at week starts.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============================================ -->
-      <!-- RECENT ACTIVITY -->
-      <!-- ============================================ -->
+      <!-- Recent Activity -->
       <section class="recent-activity-section">
         <h2 class="section-title">Recent Activity</h2>
-        
-        <div class="activity-list" id="recentActivityList">
-          <!-- Generated by JS -->
-        </div>
+        <div class="activity-list" id="recentActivityList"></div>
       </section>
 
+      <!-- Insights -->
+      <section class="insights-section">
+        <h2 class="section-title">Insights & Recommendations</h2>
+        <div class="insights-grid" id="insightsGrid">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+      
     </div>
   </main>
-<!-- Auth & API Scripts (Load first) -->
+
   <script src="/js/auth-manager.js"></script>
   <script src="/js/api-client.js"></script>
-  <!-- JavaScript -->
-  <script src="../js/dashboard.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/dashboard.js"></script>
 </body>
 </html>

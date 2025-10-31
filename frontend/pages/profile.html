@@ -31,19 +31,11 @@
 </a>
     </nav>
 
-    <div class="sidebar-section">
-      <h3 class="sidebar-section-title">Recent Chats</h3>
-      <div class="chat-history-list">
-        <a href="#" class="chat-history-item">
-          <span class="chat-title">Feeling anxious today</span>
-          <span class="chat-date">2 hours ago</span>
-        </a>
-        <a href="#" class="chat-history-item">
-          <span class="chat-title">Morning reflection</span>
-          <span class="chat-date">Yesterday</span>
-        </a>
-      </div>
-    </div>
+    <!-- Chat History Section -->
+<div class="sidebar-section">
+  <h3 class="sidebar-section-title">Recent Chats</h3>
+  <div class="chat-history-list" id="recentChatsSidebar"></div> <!-- ✅ New ID, empty -->
+</div>
 
     <div class="sidebar-footer">
       <div class="user-profile" onclick="location.href='profile.html'">
@@ -453,7 +445,7 @@
   <!-- Auth & API Scripts (Load first) -->
   <script src="/js/auth-manager.js"></script>
   <script src="/js/api-client.js"></script>
-  
+  <script src="/js/sidebar.js"></script>
   <!-- Page-specific script -->
   <script src="/js/profile.js"></script>
 </body>

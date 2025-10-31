@@ -45,13 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Load user info
-  const currentUser = window.authManager.getCurrentUser();
-  if (currentUser) {
-    const userName = document.querySelector('.user-name');
-    const userEmail = document.querySelector('.user-email');
-    if (userName) userName.textContent = currentUser.fullName || currentUser.username || 'User';
-    if (userEmail) userEmail.textContent = currentUser.email;
-  }
+ 
   
   // Initial fetch
   fetchAndRenderHistory(true);
